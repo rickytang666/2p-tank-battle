@@ -8,8 +8,8 @@ from random import*
 
 # Initializing the screen with constants
 
-WIDTH = 1200
-HEIGHT = 1000
+WIDTH = 1000
+HEIGHT = 800
 BACKGROUND_COL = "white"
 
 myInterface = Tk()
@@ -52,8 +52,8 @@ class Tank:
         self.name = "Player" + str(self.id)
         self.color1 = "blue4" if self.id == 1 else "forest green"
         self.color2 = "sky blue" if self.id == 1 else "green2"
-        self.length = 40
-        self.width = 30
+        self.length = 50
+        self.width = 40
         self.speed = 5
         self.x = x
         self.y = y
@@ -111,9 +111,10 @@ def keyUpHandler(event):
     keys_pressed[event.keysym] = False
 
 def operationsControl():
+
     if keys_pressed["a"]:
 
-            tank1.angle += 2
+        tank1.angle += 2
 
     if keys_pressed["d"]:
 
