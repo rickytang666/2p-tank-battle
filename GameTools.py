@@ -166,7 +166,18 @@ def runGame():
 screen.bind( "<Key>", keyDownHandler)
 screen.bind( "<KeyRelease>", keyUpHandler)
 
-keys_pressed = {"a": False, "d": False, "w": False, "s": False, "Left": False, "Right": False, "Up": False, "Down": False}
+keys_pressed = {
+    
+    "a": False, 
+    "d": False, 
+    "w": False, 
+    "s": False, 
+    "Left": False, 
+    "Right": False, 
+    "Up": False, 
+    "Down": False
+    
+    }
 
 screen.focus_set()  # Set focus to the canvas
 
