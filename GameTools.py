@@ -8,6 +8,8 @@ from time import *
 WIDTH = 700
 HEIGHT = 500
 BACKGROUND_COL = "white"
+LEFT_WALL, RIGHT_WALL = 80, WIDTH - 80
+UP_WALL, DOWN_WALL = 80, HEIGHT - 80
 
 myInterface = Tk()
 screen = Canvas(myInterface, width=WIDTH, height=HEIGHT, background=BACKGROUND_COL)
@@ -19,6 +21,13 @@ screen.pack()
 def ConvertAngle(angle):
     return (450 - angle) % 360
 
+def draw_circle(centerX, centerY, radius, col):
+    x1 = centerX - radius
+    x2 = centerX + radius
+    y1 = centerY - radius
+    y2 = centerY + radius
+    
+    return screen.create_oval(x1, y1, x2, y2, fill = col, outline = col)
 
 def draw_rotated_rectangle(centerX, centerY, length, width, angle, col):
     # Calculate the corners of the rectangle
@@ -30,6 +39,10 @@ def draw_rotated_rectangle(centerX, centerY, length, width, angle, col):
         corners.append((centerX + dx_rot, centerY + dy_rot))
 
     return screen.create_polygon(*corners, fill=col, outline=col)
+    
+def draw_background():
+    
+    screen.create_rectangle(LEFT_WALL, UP_WALL, RIGHT_WALL, DOWN_WALL, outline = "black", width = 5)
 
 
 ############################################3
@@ -39,7 +52,7 @@ def draw_rotated_rectangle(centerX, centerY, length, width, angle, col):
 
 class Tank:
 
-    def __init__(self, id, x, y, angle, enemy=None):
+    def __init__(self, id, x, y, angle, enemy = None):
         # Initialize the properties
         self.id = id
         self.name = "Player" if self.id == 1 else "Enemy"
@@ -48,10 +61,12 @@ class Tank:
         self.length = 45
         self.width = 40
         self.speed = 2
+        self.rotate_speed = 1
         self.x = x
         self.y = y
         self.angle = angle
         self.shield_radius = 35
+        self.petrol = 20000
         self.enemy = enemy
 
         # Initialize the drawings
@@ -61,13 +76,20 @@ class Tank:
         self.shield = 0
 
     def draw(self):
+        
+        # Every time it show up it should consume petrol
+        self.petrol -= 1
+        
         self.body = draw_rotated_rectangle(self.x, self.y, self.length, self.width, self.angle, self.color2)
         self.platform = draw_rotated_rectangle(self.x, self.y, self.length * 0.8, self.width * 0.8, self.angle, self.color1)
 
-        endX = self.x + 35 * cos(radians(self.angle))
-        endY = self.y - 35 * sin(radians(self.angle))  # Subtract instead of add
-
+        endX = self.x + 37 * cos(radians(self.angle))
+        endY = self.y - 37 * sin(radians(self.angle))  # Subtract instead of add
+        
         self.cannon = screen.create_line(self.x, self.y, endX, endY, fill=self.color1, width=10)
+        
+        # for debug
+        
         self.shield = screen.create_oval(self.x - self.shield_radius, self.y - self.shield_radius,
                                          self.x + self.shield_radius, self.y + self.shield_radius, outline="gray")
 
@@ -78,19 +100,32 @@ class Tank:
         if not self.check_collision(new_x, new_y):
             self.x = new_x
             self.y = new_y
+            
+            # consume petrol
+            self.petrol -= 2 * self.speed
 
     def go_back(self):
+        
         # Move the tank backward in the direction it's pointing
         new_x = self.x - self.speed * cos(radians(self.angle))
         new_y = self.y + self.speed * sin(radians(self.angle))  # Add instead of subtract
         if not self.check_collision(new_x, new_y):
             self.x = new_x
             self.y = new_y
+            
+            # consume petrol
+            self.petrol -= 2 * self.speed
+            
+    def rotate(self):
+        self.angle += self.rotate_speed
+        
+    def counter_rotate(self):
+        self.angle -= self.rotate_speed
 
     def check_collision(self, x, y):
         # Check if the tank's circular shield is within the screen boundaries
-        if (x - self.shield_radius < 0 or x + self.shield_radius > WIDTH or
-                y - self.shield_radius < 0 or y + self.shield_radius > HEIGHT):
+        if (x - self.shield_radius < LEFT_WALL or x + self.shield_radius > RIGHT_WALL or
+                y - self.shield_radius < UP_WALL or y + self.shield_radius > DOWN_WALL):
             return True
 
         # Check for collisions with the enemy tank
@@ -111,8 +146,8 @@ def setInitialValues():
     global tank1, tank2  # objects
     global FPS
 
-    tank1 = Tank(1, 50, 50, 0)
-    tank2 = Tank(2, WIDTH - 50, HEIGHT - 50, 180, tank1)
+    tank1 = Tank(1, LEFT_WALL + 50, UP_WALL + 50, 0)
+    tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180, tank1)
     tank1.enemy = tank2
     FPS = 144
 
@@ -127,10 +162,10 @@ def keyUpHandler(event):
 
 def operationsControl():
     if keys_pressed["a"]:
-        tank1.angle += 2
+        tank1.rotate()
 
     if keys_pressed["d"]:
-        tank1.angle -= 2
+        tank1.counter_rotate()
 
     if keys_pressed["w"]:
         tank1.go()
@@ -139,10 +174,10 @@ def operationsControl():
         tank1.go_back()
 
     if keys_pressed["Left"]:
-        tank2.angle += 2
+        tank2.rotate()
 
     if keys_pressed["Right"]:
-        tank2.angle -= 2
+        tank2.counter_rotate()
 
     if keys_pressed["Up"]:
         tank2.go()
@@ -152,6 +187,7 @@ def operationsControl():
 
 
 def runGame():
+    draw_background()
     setInitialValues()
 
     for f in range(100000):
@@ -159,12 +195,18 @@ def runGame():
 
         tank1.draw()
         tank2.draw()
+        
+        if f % 100 == 0:
+        
+            data = str(tank1.petrol) + " : " + str(tank2.petrol)
+        mytext = screen.create_text(100, 40, text = data, font = "Times 20", fill = "red")
 
         # update/sleep/delete
         screen.update()
         sleep(1 / FPS)
         tank1.delete()
         tank2.delete()
+        screen.delete(mytext)
 
 
 # Bindings
