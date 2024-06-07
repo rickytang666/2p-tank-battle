@@ -54,7 +54,7 @@ class Tank:
         self.color2 = "sky blue" if self.id == 1 else "green2"
         self.length = 40
         self.width = 30
-        self.speed = 20
+        self.speed = 5
         self.x = x
         self.y = y
         self.angle = angle
@@ -104,37 +104,43 @@ def setInitialValues():
 
 def keyDownHandler(event):
 
-    if event.keysym == "a":
+    keys_pressed[event.keysym] = True
 
-        tank1.angle += 5
+def keyUpHandler(event):
 
-    elif event.keysym == "d":
+    keys_pressed[event.keysym] = False
 
-        tank1.angle -= 5
+def operationsControl():
+    if keys_pressed["a"]:
 
-    elif event.keysym == "w":
+            tank1.angle += 2
+
+    if keys_pressed["d"]:
+
+        tank1.angle -= 2
+
+    if keys_pressed["w"]:
 
         tank1.go()
 
-    elif event.keysym == "s":
-        
+    if keys_pressed["s"]:
+
         tank1.go_back()
 
+    if keys_pressed["Left"]:
 
-    if event.keysym == "Left":
+        tank2.angle += 2
 
-        tank2.angle += 5
+    if keys_pressed["Right"]:
 
-    elif event.keysym == "Right":
+        tank2.angle -= 2
 
-        tank2.angle -= 5
-
-    elif event.keysym == "Up":
+    if keys_pressed["Up"]:
 
         tank2.go()
 
-    elif event.keysym == "Down":
-
+    if keys_pressed["Down"]:
+        
         tank2.go_back()
 
 
@@ -143,6 +149,8 @@ def runGame():
     setInitialValues()
 
     for f in range(100000):
+
+        operationsControl()
 
         tank1.draw()
         tank2.draw()
@@ -155,6 +163,9 @@ def runGame():
 
 # Bindings
 screen.bind( "<Key>", keyDownHandler)
+screen.bind( "<KeyRelease>", keyUpHandler)
+
+keys_pressed = {"a": False, "d": False, "w": False, "s": False, "Left": False, "Right": False, "Up": False, "Down": False}
 
 screen.focus_set()  # Set focus to the canvas
 
