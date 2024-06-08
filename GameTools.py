@@ -21,6 +21,18 @@ screen.pack()
 def ConvertAngle(angle):
     return (450 - angle) % 360
 
+
+def to_principal(angle):
+
+    return (angle + 180) % 360 - 180
+
+
+
+def calculate_distance(x1, y1, x2, y2):
+    
+    return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+
 def draw_circle(centerX, centerY, radius, col):
     x1 = centerX - radius
     x2 = centerX + radius
@@ -65,8 +77,9 @@ class Tank:
         self.x = x
         self.y = y
         self.angle = angle
-        self.shield_radius = 35
+        self.shield_radius = 28
         self.petrol = 20000
+        self.shoot_range = 200
         self.enemy = enemy
 
         # Initialize the drawings
@@ -81,12 +94,12 @@ class Tank:
         self.petrol -= 1
         
         self.body = draw_rotated_rectangle(self.x, self.y, self.length, self.width, self.angle, self.color2)
-        self.platform = draw_rotated_rectangle(self.x, self.y, self.length * 0.8, self.width * 0.8, self.angle, self.color1)
+        self.platform = draw_rotated_rectangle(self.x, self.y, self.length * 0.6, self.width * 0.6, self.angle, self.color1)
 
-        endX = self.x + 37 * cos(radians(self.angle))
-        endY = self.y - 37 * sin(radians(self.angle))  # Subtract instead of add
+        endX = self.x + 30 * cos(radians(self.angle))
+        endY = self.y - 30 * sin(radians(self.angle))  # Subtract instead of add
         
-        self.cannon = screen.create_line(self.x, self.y, endX, endY, fill=self.color1, width=10)
+        self.cannon = screen.create_line(self.x, self.y, endX, endY, fill=self.color1, width = 7)
         
         # for debug
         
@@ -117,12 +130,13 @@ class Tank:
             self.petrol -= 2 * self.speed
             
     def rotate(self):
-        self.angle += self.rotate_speed
+        self.angle = to_principal(self.angle + self.rotate_speed)
         
     def counter_rotate(self):
-        self.angle -= self.rotate_speed
+        self.angle = to_principal(self.angle - self.rotate_speed)
 
     def check_collision(self, x, y):
+        
         # Check if the tank's circular shield is within the screen boundaries
         if (x - self.shield_radius < LEFT_WALL or x + self.shield_radius > RIGHT_WALL or
                 y - self.shield_radius < UP_WALL or y + self.shield_radius > DOWN_WALL):
@@ -130,11 +144,59 @@ class Tank:
 
         # Check for collisions with the enemy tank
         if self.enemy != None:
-            distance = sqrt((self.enemy.x - x) ** 2 + (self.enemy.y - y) ** 2)
+            distance = calculate_distance(x, y, self.enemy.x, self.enemy.y)
             if distance < self.shield_radius + self.enemy.shield_radius:
                 return True
 
         return False
+    
+
+    def check_shoot_success(self):
+
+        cx, cy = WIDTH/2, HEIGHT/2
+
+        x1 = self.x - cx if self.x >= cx else (-1) * (cx - self.x)
+        y1 = cy - self.y if self.y <= cy else (-1) * (self.y - cy)
+        x2 = self.enemy.x - cx if self.enemy.x >= cx else (-1) * (cx - self.enemy.x)
+        y2 = cy - self.enemy.y if self.enemy.y <= cy else (-1) * (self.enemy.y - cy)
+
+        D = calculate_distance(x1, y1, x2, y2)
+
+        print(D)
+
+        K, R = self.shoot_range, self.enemy.shield_radius
+
+        if K < D - R:
+            return False
+
+        elif K == D - R:
+            angle = degrees(atan2(y2 - y1, x2 - x1))
+            print(angle)
+
+            return True if self.angle == angle else False
+
+        elif D - R < K < D:
+
+            angle1 = degrees(atan2(y2 - y1, x2 - x1)) - degrees(acos((D**2 + K**2 - R**2) / (2 * D * K)))
+            angle2 = degrees(atan2(y2 - y1, x2 - x1)) + degrees(acos((D**2 + K**2 - R**2) / (2 * D * K)))
+            print(angle1, angle2)
+
+            return True if self.angle >= min(angle1, angle2) and self.angle <= max(angle1, angle2) else False
+
+        else:
+
+            angle1 = degrees(atan2(y2 - y1, x2 - x1)) - degrees(asin(R / D))
+            angle2 = degrees(atan2(y2 - y1, x2 - x1)) + degrees(asin(R / D))
+            
+            print(angle1, angle2)
+
+            return True if self.angle >= min(angle1, angle2) and self.angle <= max(angle1, angle2) else False
+        
+        
+    def attack(self):
+
+        print(self.check_shoot_success())
+
 
     def delete(self):
         screen.delete(self.body, self.platform, self.cannon, self.shield)
@@ -149,7 +211,7 @@ def setInitialValues():
     tank1 = Tank(1, LEFT_WALL + 50, UP_WALL + 50, 0)
     tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180, tank1)
     tank1.enemy = tank2
-    FPS = 144
+    FPS = 120
 
 
 def keyDownHandler(event):
@@ -185,6 +247,12 @@ def operationsControl():
     if keys_pressed["Down"]:
         tank2.go_back()
 
+    if keys_pressed["e"]:
+        tank1.attack()
+
+    if keys_pressed["m"]:
+        tank2.attack()
+
 
 def runGame():
     draw_background()
@@ -213,7 +281,18 @@ def runGame():
 screen.bind("<Key>", keyDownHandler)
 screen.bind("<KeyRelease>", keyUpHandler)
 
-keys_pressed = {"a": False, "d": False, "w": False, "s": False, "Left": False, "Right": False, "Up": False, "Down": False}
+keys_pressed = {
+    "a": False, 
+    "d": False, 
+    "w": False, 
+    "s": False, 
+    "Left": False, 
+    "Right": False, 
+    "Up": False, 
+    "Down": False, 
+    "e" : False, 
+    "m" : False, 
+    }
 
 screen.focus_set()  # Set focus to the canvas
 
