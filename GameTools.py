@@ -167,8 +167,8 @@ class Tank:
         self.color2 = "sky blue" if self.id == 1 else "green2"
         self.length = 45
         self.width = 40
-        self.speed = 5
-        self.rotate_speed = 3
+        self.speed = 1
+        self.rotate_speed = 0.5
         self.x = x
         self.y = y
         self.angle = angle
@@ -182,6 +182,7 @@ class Tank:
         self.shoot_range = 150
         self.enemy = 0
         self.hit_num = 0
+        self.attack_cooldown = 0  # The rate of attacking has limits, just like normal ones
 
         # Initialize the drawings
         self.body = 0
@@ -316,7 +317,7 @@ class Tank:
         
     def attack(self):
 
-        if self.munitons_num > 0:
+        if self.munitons_num > 0 and self.attack_cooldown <= 0:
 
             self.munitons[self.munitons_used].launch(self.angle)
 
@@ -334,6 +335,8 @@ class Tank:
                 else:
                     self.enemy.live_points -= self.hurt
 
+            self.attack_cooldown = 50 # reset
+
     def update(self):
 
         # update the max lifespan for each munition
@@ -348,6 +351,9 @@ class Tank:
             else:
                 munition.x = self.endX
                 munition.y = self.endY
+
+        if self.attack_cooldown > 0:  # If cooldown is active
+            self.attack_cooldown -= 1  # Decrease the cooldown
 
     def delete(self):
         screen.delete(self.body, self.platform, self.barrel, self.shield, self.shoot_circle)
@@ -380,39 +386,31 @@ def keyUpHandler(event):
 def operationsControl():
     if keys_pressed["a"]:
         tank1.rotate()
-        keys_pressed["a"] = False
 
     if keys_pressed["d"]:
         tank1.counter_rotate()
-        keys_pressed["d"] = False
 
     if keys_pressed["w"]:
         tank1.go()
-        keys_pressed["w"] = False
 
     if keys_pressed["s"]:
         tank1.go_back()
-        keys_pressed["s"] = False
 
     if keys_pressed["Left"]:
         tank2.rotate()
-        keys_pressed["Left"] = False
 
     if keys_pressed["Right"]:
         tank2.counter_rotate()
-        keys_pressed["Right"] = False
 
     if keys_pressed["Up"]:
         tank2.go()
-        keys_pressed["Up"] = False
 
     if keys_pressed["Down"]:
         tank2.go_back()
-        keys_pressed["Down"] = False
 
     if keys_pressed["e"]:
         tank1.attack()
-        keys_pressed["e"] = False
+        keys_pressed["m"] = False
 
     if keys_pressed["m"]:
         tank2.attack()
