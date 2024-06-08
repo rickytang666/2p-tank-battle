@@ -410,7 +410,7 @@ def operationsControl():
 
     if keys_pressed["e"]:
         tank1.attack()
-        keys_pressed["m"] = False
+        keys_pressed["e"] = False
 
     if keys_pressed["m"]:
         tank2.attack()
