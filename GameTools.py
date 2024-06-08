@@ -51,20 +51,114 @@ def draw_rotated_rectangle(centerX, centerY, length, width, angle, col):
         corners.append((centerX + dx_rot, centerY + dy_rot))
 
     return screen.create_polygon(*corners, fill=col, outline=col)
+
     
 def draw_background():
     
     screen.create_rectangle(LEFT_WALL, UP_WALL, RIGHT_WALL, DOWN_WALL, outline = "black", width = 5)
 
+def draw_muniton(x, y, width, angle):
 
-############################################3
+    angle = to_principal(angle)
+
+    # Calculate the position of the head of the cannon
+    head_x = x + (width) * cos(radians(angle))
+    head_y = y - (width) * sin(radians(angle))  # Subtract instead of add
+
+    # Draw the head of the cannon
+    head = draw_circle(head_x, head_y, width/2, "orange", "orange")
+
+    # Draw the body of the cannon
+    body = draw_rotated_rectangle(x, y, 2 * width, width, angle, "orange")
+
+    
+    return [body, head]
+
+
+###########################################################################
 
 
 # Classes
 
+
+class Munition:
+
+    def __init__(self, x_pos, y_pos, shoot_range):
+
+        self.x, self.y = x_pos, y_pos
+        self.active = False
+        self.alive = True
+
+        self.head, self.body = 0, 0
+        self.width = 10
+        self.speed = 1
+        self.shoot_range = shoot_range
+        self.age = 0
+        self.angle = 0
+
+    def calculate_lifespan(self, target):
+
+        D = calculate_distance(self.x, self.y, target.x, target.y)
+
+        if self.shoot_range < D:
+            self.max_lifespan = ceil(self.shoot_range/self.speed)
+        else:
+            self.max_lifespan = ceil(D/self.speed)
+
+    def draw(self):
+
+        if self.active:
+
+            angle = to_principal(self.angle)
+
+            # Calculate the position of the head of the cannon
+            head_x = self.x + (self.width) * cos(radians(angle))
+            head_y = self.y - (self.width) * sin(radians(angle))  # Subtract instead of add
+
+            # Draw the head of the cannon
+            self.head = draw_circle(head_x, head_y, self.width/2, "orange", "orange")
+
+            # Draw the body of the cannon
+            self.body = draw_rotated_rectangle(self.x, self.y, 2 * self.width, self.width, angle, "orange")
+
+        else:
+
+            self.head, self.body = 0, 0
+
+
+    def launch(self, angle):
+
+        self.active = True
+        self.angle = angle
+    
+
+    def move_update(self):
+        new_x = self.x + self.speed * cos(radians(self.angle))
+        new_y = self.y - self.speed * sin(radians(self.angle))
+
+        if new_x - self.width/2 < LEFT_WALL or new_x + self.width/2 > RIGHT_WALL or \
+        new_y - self.width/2 < UP_WALL or new_y + self.width/2 > DOWN_WALL:
+            self.alive = False
+            self.active = False
+        else:
+            self.x = new_x
+            self.y = new_y
+            if self.age >= self.max_lifespan:
+                self.alive = False
+                self.active = False
+            else:
+                self.age += 1
+
+
+    def delete(self):
+
+        if self.head != 0 and self.body != 0:
+            screen.delete(self.head, self.body)
+
+
 class Tank:
 
-    def __init__(self, id, x, y, angle, enemy = None):
+    def __init__(self, id, x, y, angle):
         # Initialize the properties
         self.id = id
         self.name = "Player" if self.id == 1 else "Enemy"
@@ -81,38 +175,57 @@ class Tank:
 
         self.live_points = 100
         self.hurt = 6
-        self.cannon_num = 20
+        self.munitons_num = 20
+        self.munitons_used = 0
         self.shield_radius = 28
         self.petrol = 20000
-        self.shoot_range = 100
-        self.enemy = enemy
+        self.shoot_range = 150
+        self.enemy = 0
         self.hit_num = 0
 
         # Initialize the drawings
         self.body = 0
         self.platform = 0
-        self.cannon = 0
+        self.barrel = 0
         self.shield = 0
         self.shoot_circle = 0
+        self.munitons = []
+
+    def set_enemy(self, enemy):
+
+        self.enemy = enemy
+        # Create the munitions after the enemy is set
+        self.munitons = [Munition(self.x, self.y, self.shoot_range) for _ in range(self.munitons_num)]
 
     def draw(self):
         
         # Every time it show up it should consume petrol
         self.petrol -= 1
         
+        # Tank components
+
         self.body = draw_rotated_rectangle(self.x, self.y, self.length, self.width, self.angle, self.color2)
         self.platform = draw_rotated_rectangle(self.x, self.y, self.length * 0.6, self.width * 0.6, self.angle, self.color1)
 
-        endX = self.x + 30 * cos(radians(self.angle))
-        endY = self.y - 30 * sin(radians(self.angle))  # Subtract instead of add
+        self.endX = self.x + 30 * cos(radians(self.angle))
+        self.endY = self.y - 30 * sin(radians(self.angle))  # Subtract instead of add
         
-        self.cannon = screen.create_line(self.x, self.y, endX, endY, fill=self.color1, width = 7)
+        self.barrel = screen.create_line(self.x, self.y, self.endX, self.endY, fill=self.color1, width = 7)
         
         # for debug
         
         self.shield = draw_circle(self.x, self.y, self.shield_radius, "", "gray")
 
         self.shoot_circle = draw_circle(self.x, self.y, self.shoot_range, "", "red")
+
+
+    def draw_munitions(self):
+        # The munitons (if launched)
+
+        for munition in self.munitons:
+            if munition.active:
+                munition.draw()
+
 
     def go(self):
         # Move the tank forward in the direction it's pointing
@@ -203,9 +316,12 @@ class Tank:
         
     def attack(self):
 
-        if self.cannon_num > 0:
+        if self.munitons_num > 0:
 
-            self.cannon_num -= 1
+            self.munitons[self.munitons_used].launch(self.angle)
+
+            self.munitons_num -= 1
+            self.munitons_used += 1
 
             print(self.check_shoot_success())
 
@@ -218,9 +334,26 @@ class Tank:
                 else:
                     self.enemy.live_points -= self.hurt
 
+    def update(self):
+
+        # update the max lifespan for each munition
+
+        for munition in self.munitons:
+
+            munition.calculate_lifespan(self.enemy)
+
+        for munition in self.munitons:
+            if munition.active:
+                munition.move_update()
+            else:
+                munition.x = self.endX
+                munition.y = self.endY
 
     def delete(self):
-        screen.delete(self.body, self.platform, self.cannon, self.shield, self.shoot_circle)
+        screen.delete(self.body, self.platform, self.barrel, self.shield, self.shoot_circle)
+
+        for muniton in self.munitons:
+            muniton.delete()
 
 
 #####################################################################################################
@@ -230,8 +363,9 @@ def setInitialValues():
     global FPS
 
     tank1 = Tank(1, LEFT_WALL + 50, UP_WALL + 50, 0)
-    tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180, tank1)
-    tank1.enemy = tank2
+    tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180)
+    tank1.set_enemy(tank2)
+    tank2.set_enemy(tank1)
     FPS = 144
 
 
@@ -294,6 +428,11 @@ def runGame():
 
         tank1.draw()
         tank2.draw()
+        tank1.draw_munitions()
+        tank2.draw_munitions()
+
+        tank1.update()
+        tank2.update()
         
         if f % 100 == 0:
         
@@ -301,7 +440,7 @@ def runGame():
 
         livedata = str(tank1.live_points) + " : " + str(tank2.live_points)
 
-        cannondata = str(tank1.cannon_num) + " : " + str(tank2.cannon_num)
+        cannondata = str(tank1.munitons_num) + " : " + str(tank2.munitons_num)
 
         petroltext = screen.create_text(100, 40, text = data, font = "Times 20", fill = "red")
         livetext = screen.create_text(300, 40, text = livedata, font = "Times 20", fill = "purple")
@@ -336,4 +475,4 @@ screen.focus_set()  # Set focus to the canvas
 
 runGame()
 
-myInterface.mainloop()
+screen.mainloop()
