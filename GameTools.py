@@ -33,13 +33,13 @@ def calculate_distance(x1, y1, x2, y2):
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
-def draw_circle(centerX, centerY, radius, col):
+def draw_circle(centerX, centerY, radius, fcol, ocol):
     x1 = centerX - radius
     x2 = centerX + radius
     y1 = centerY - radius
     y2 = centerY + radius
     
-    return screen.create_oval(x1, y1, x2, y2, fill = col, outline = col)
+    return screen.create_oval(x1, y1, x2, y2, fill = fcol, outline = ocol)
 
 def draw_rotated_rectangle(centerX, centerY, length, width, angle, col):
     # Calculate the corners of the rectangle
@@ -68,25 +68,32 @@ class Tank:
         # Initialize the properties
         self.id = id
         self.name = "Player" if self.id == 1 else "Enemy"
+
         self.color1 = "blue4" if self.id == 1 else "forest green"
         self.color2 = "sky blue" if self.id == 1 else "green2"
         self.length = 45
         self.width = 40
-        self.speed = 2
-        self.rotate_speed = 1
+        self.speed = 5
+        self.rotate_speed = 3
         self.x = x
         self.y = y
         self.angle = angle
+
+        self.live_points = 100
+        self.hurt = 6
+        self.cannon_num = 20
         self.shield_radius = 28
         self.petrol = 20000
-        self.shoot_range = 200
+        self.shoot_range = 100
         self.enemy = enemy
+        self.hit_num = 0
 
         # Initialize the drawings
         self.body = 0
         self.platform = 0
         self.cannon = 0
         self.shield = 0
+        self.shoot_circle = 0
 
     def draw(self):
         
@@ -103,8 +110,9 @@ class Tank:
         
         # for debug
         
-        self.shield = screen.create_oval(self.x - self.shield_radius, self.y - self.shield_radius,
-                                         self.x + self.shield_radius, self.y + self.shield_radius, outline="gray")
+        self.shield = draw_circle(self.x, self.y, self.shield_radius, "", "gray")
+
+        self.shoot_circle = draw_circle(self.x, self.y, self.shoot_range, "", "red")
 
     def go(self):
         # Move the tank forward in the direction it's pointing
@@ -195,11 +203,24 @@ class Tank:
         
     def attack(self):
 
-        print(self.check_shoot_success())
+        if self.cannon_num > 0:
+
+            self.cannon_num -= 1
+
+            print(self.check_shoot_success())
+
+            if self.check_shoot_success():
+
+                self.hit_num += 1
+                
+                if self.enemy.live_points - self.hurt <= 0:
+                    self.enemy.live_points = 0
+                else:
+                    self.enemy.live_points -= self.hurt
 
 
     def delete(self):
-        screen.delete(self.body, self.platform, self.cannon, self.shield)
+        screen.delete(self.body, self.platform, self.cannon, self.shield, self.shoot_circle)
 
 
 #####################################################################################################
@@ -211,7 +232,7 @@ def setInitialValues():
     tank1 = Tank(1, LEFT_WALL + 50, UP_WALL + 50, 0)
     tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180, tank1)
     tank1.enemy = tank2
-    FPS = 120
+    FPS = 144
 
 
 def keyDownHandler(event):
@@ -225,33 +246,43 @@ def keyUpHandler(event):
 def operationsControl():
     if keys_pressed["a"]:
         tank1.rotate()
+        keys_pressed["a"] = False
 
     if keys_pressed["d"]:
         tank1.counter_rotate()
+        keys_pressed["d"] = False
 
     if keys_pressed["w"]:
         tank1.go()
+        keys_pressed["w"] = False
 
     if keys_pressed["s"]:
         tank1.go_back()
+        keys_pressed["s"] = False
 
     if keys_pressed["Left"]:
         tank2.rotate()
+        keys_pressed["Left"] = False
 
     if keys_pressed["Right"]:
         tank2.counter_rotate()
+        keys_pressed["Right"] = False
 
     if keys_pressed["Up"]:
         tank2.go()
+        keys_pressed["Up"] = False
 
     if keys_pressed["Down"]:
         tank2.go_back()
+        keys_pressed["Down"] = False
 
     if keys_pressed["e"]:
         tank1.attack()
+        keys_pressed["e"] = False
 
     if keys_pressed["m"]:
         tank2.attack()
+        keys_pressed["m"] = False
 
 
 def runGame():
@@ -267,14 +298,21 @@ def runGame():
         if f % 100 == 0:
         
             data = str(tank1.petrol) + " : " + str(tank2.petrol)
-        mytext = screen.create_text(100, 40, text = data, font = "Times 20", fill = "red")
+
+        livedata = str(tank1.live_points) + " : " + str(tank2.live_points)
+
+        cannondata = str(tank1.cannon_num) + " : " + str(tank2.cannon_num)
+
+        petroltext = screen.create_text(100, 40, text = data, font = "Times 20", fill = "red")
+        livetext = screen.create_text(300, 40, text = livedata, font = "Times 20", fill = "purple")
+        cannontext = screen.create_text(500, 40, text = cannondata, font = "Times 20", fill = "tomato")
 
         # update/sleep/delete
         screen.update()
         sleep(1 / FPS)
         tank1.delete()
         tank2.delete()
-        screen.delete(mytext)
+        screen.delete(petroltext, livetext, cannontext)
 
 
 # Bindings
