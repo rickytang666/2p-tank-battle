@@ -1,3 +1,5 @@
+# Importing neccesary packages
+
 from tkinter import *
 from math import *
 from time import *
@@ -16,10 +18,14 @@ screen = Canvas(myInterface, width=WIDTH, height=HEIGHT, background=BACKGROUND_C
 screen.pack()
 
 
+################################################################################################
+
+
 # General drawing/calculating methods
 
 def ConvertAngle(angle):
     return (450 - angle) % 360
+
 
 
 def to_principal(angle):
@@ -33,6 +39,7 @@ def calculate_distance(x1, y1, x2, y2):
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
+
 def draw_circle(centerX, centerY, radius, fcol, ocol):
     x1 = centerX - radius
     x2 = centerX + radius
@@ -40,6 +47,7 @@ def draw_circle(centerX, centerY, radius, fcol, ocol):
     y2 = centerY + radius
     
     return screen.create_oval(x1, y1, x2, y2, fill = fcol, outline = ocol)
+
 
 
 def draw_rotated_rectangle(centerX, centerY, length, width, angle, col):
@@ -53,12 +61,15 @@ def draw_rotated_rectangle(centerX, centerY, length, width, angle, col):
 
     return screen.create_polygon(*corners, fill=col, outline=col)
 
+
     
 def draw_background():
     
     screen.create_rectangle(LEFT_WALL, UP_WALL, RIGHT_WALL, DOWN_WALL, outline = "black", width = 5)
 
-###########################################################################
+
+
+###################################################################################################
 
 
 # Classes
@@ -225,6 +236,7 @@ class Tank:
         
         # Every second it show up it should consume fuel
         if frames % 144 == 0 and self.fuel > 0:
+
             self.fuel -= 1
         
         # Tank components
@@ -242,11 +254,15 @@ class Tank:
 
         self.draw_display_panels()
         
-        # for debug
+        # The shield is for testing and debug
         
         self.shield = draw_circle(self.x, self.y, self.shield_radius, "", "gray")
 
-        # self.shoot_circle = draw_circle(self.x, self.y, self.shoot_range, "", "red")
+        # At the first 10 seconds, the game will give each player a feeling of their shooting range
+
+        if frames <= 144 * 15:
+
+            self.shoot_circle = draw_circle(self.x, self.y, self.shoot_range, "", "orange")
 
 
     def draw_munitions(self):
@@ -380,25 +396,35 @@ class Tank:
         
     def attack(self):
 
-        if self.munitions_num > 0 and self.attack_cooldown <= 0:
+        if self.attack_cooldown <= 0:
 
-            self.munitions[self.munitions_used].launch(self.angle)
+            # Every time the barrel works, it will consume energy (fuel in the tank)
 
-            self.munitions_num -= 1
-            self.munitions_used += 1
+            self.fuel -= 30
 
-            print(self.check_shoot_success())
+            if self.fuel < 0:
 
-            if self.check_shoot_success():
+                self.fuel = 0
 
-                self.hit_num += 1
-                
-                if self.enemy.live_points - self.hurt <= 0:
-                    self.enemy.live_points = 0
-                else:
-                    self.enemy.live_points -= self.hurt
+            if self.munitions_num > 0:
 
-            self.attack_cooldown = 50 # reset
+                self.munitions[self.munitions_used].launch(self.angle)
+
+                self.munitions_num -= 1
+                self.munitions_used += 1
+
+                print(self.check_shoot_success())
+
+                if self.check_shoot_success():
+
+                    self.hit_num += 1
+                    
+                    if self.enemy.live_points - self.hurt <= 0:
+                        self.enemy.live_points = 0
+                    else:
+                        self.enemy.live_points -= self.hurt
+
+                self.attack_cooldown = 50 # reset
 
 
     def update(self, enemy):
@@ -432,6 +458,11 @@ class Tank:
     def delete(self):
 
         screen.delete(self.body, self.platform, self.barrel, self.shield)
+
+        if self.shoot_circle is not None:
+
+            screen.delete(self.shoot_circle)
+
         screen.delete(self.name_display, self.live_box, self.live_bar, self.live_display)
         screen.delete(self.fuel_text, self.fuel_box, self.fuel_bar)
         screen.delete(self.munitions_text, self.munitions_display)
@@ -440,7 +471,11 @@ class Tank:
             munition.delete()
 
 
+
 #####################################################################################################
+
+# Actual game-running related functions/procedures
+
 
 def setInitialValues():
     global tank1, tank2  # objects
@@ -453,12 +488,15 @@ def setInitialValues():
     FPS = 144
 
 
+
 def keyDownHandler(event):
     keys_pressed[event.keysym] = True
 
 
+
 def keyUpHandler(event):
     keys_pressed[event.keysym] = False
+
 
 
 def operationsControl():
@@ -486,11 +524,12 @@ def operationsControl():
     if keys_pressed["Down"]:
         tank2.go_back()
 
-    if keys_pressed["e"]:
+    if keys_pressed["g"]:
         tank1.attack()
 
     if keys_pressed["m"]:
         tank2.attack()
+
 
 
 def GameEnds():
@@ -510,22 +549,26 @@ def GameEnds():
     return 0
 
 
+
 def victoryDeclare():
+
+    text_positions = [WIDTH/2, HEIGHT/2]
 
     tank1.draw(0)
     tank2.draw(0)
 
     if GameEnds() == 1:
         
-        screen.create_text(400, 400, text = "Player 2 wins", font = "times 20")
+        screen.create_text(*text_positions, text = "Player 2 wins", font = "times 20")
 
     elif GameEnds() == 2:
 
-        screen.create_text(400, 400, text = "Player 1 wins", font = "times 20")
+        screen.create_text(*text_positions, text = "Player 1 wins", font = "times 20")
 
     elif GameEnds() == 3:
 
-        screen.create_text(400, 400, text = "Both run out of fuel. Draw!", font = "times 20")
+        screen.create_text(*text_positions, text = "Both run out of fuel. Draw!", font = "times 20")
+
 
 
 def runGame():
@@ -533,7 +576,9 @@ def runGame():
     draw_background()
     setInitialValues()
 
-    for f in range(100000):
+    f = 0
+
+    while True:
 
         operationsControl()
 
@@ -551,6 +596,8 @@ def runGame():
         tank1.delete()
         tank2.delete()
 
+        f += 1
+
         if GameEnds() > 0:
 
             break
@@ -558,7 +605,10 @@ def runGame():
     victoryDeclare()
 
 
+#####################################################################################################
+
 # Bindings
+
 screen.bind("<Key>", keyDownHandler)
 screen.bind("<KeyRelease>", keyUpHandler)
 
@@ -571,11 +621,15 @@ keys_pressed = {
     "Right": False, 
     "Up": False, 
     "Down": False, 
-    "e" : False, 
+    "g" : False, 
     "m" : False, 
     }
 
 screen.focus_set()  # Set focus to the canvas
+
+#####################################################################################################
+
+# For testing
 
 runGame()
 
