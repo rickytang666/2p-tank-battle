@@ -260,7 +260,7 @@ class Tank:
 
         # At the first 10 seconds, the game will give each player a feeling of their shooting range
 
-        if frames <= 144 * 15:
+        if frames > 0 and frames <= 144 * 15:
 
             self.shoot_circle = draw_circle(self.x, self.y, self.shoot_range, "", "orange")
 
