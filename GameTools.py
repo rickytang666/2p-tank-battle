@@ -5,8 +5,8 @@ from time import *
 
 # Initializing the screen with constants
 
-WIDTH = 700
-HEIGHT = 500
+WIDTH = 1000
+HEIGHT = 800
 BACKGROUND_COL = "white"
 LEFT_WALL, RIGHT_WALL = 80, WIDTH - 80
 UP_WALL, DOWN_WALL = 80, HEIGHT - 80
@@ -41,6 +41,7 @@ def draw_circle(centerX, centerY, radius, fcol, ocol):
     
     return screen.create_oval(x1, y1, x2, y2, fill = fcol, outline = ocol)
 
+
 def draw_rotated_rectangle(centerX, centerY, length, width, angle, col):
     # Calculate the corners of the rectangle
     corners = []
@@ -56,24 +57,6 @@ def draw_rotated_rectangle(centerX, centerY, length, width, angle, col):
 def draw_background():
     
     screen.create_rectangle(LEFT_WALL, UP_WALL, RIGHT_WALL, DOWN_WALL, outline = "black", width = 5)
-
-def draw_muniton(x, y, width, angle):
-
-    angle = to_principal(angle)
-
-    # Calculate the position of the head of the cannon
-    head_x = x + (width) * cos(radians(angle))
-    head_y = y - (width) * sin(radians(angle))  # Subtract instead of add
-
-    # Draw the head of the cannon
-    head = draw_circle(head_x, head_y, width/2, "orange", "orange")
-
-    # Draw the body of the cannon
-    body = draw_rotated_rectangle(x, y, 2 * width, width, angle, "orange")
-
-    
-    return [body, head]
-
 
 ###########################################################################
 
@@ -91,7 +74,7 @@ class Munition:
 
         self.head, self.body = 0, 0
         self.width = 10
-        self.speed = 1
+        self.speed = 20
         self.shoot_range = shoot_range
         self.age = 0
         self.angle = 0
@@ -156,33 +139,35 @@ class Munition:
             screen.delete(self.head, self.body)
 
 
+
 class Tank:
 
     def __init__(self, id, x, y, angle):
         # Initialize the properties
         self.id = id
-        self.name = "Player" if self.id == 1 else "Enemy"
+        self.name = "Player " + str(self.id)
 
         self.color1 = "blue4" if self.id == 1 else "forest green"
         self.color2 = "sky blue" if self.id == 1 else "green2"
         self.length = 45
         self.width = 40
-        self.speed = 1
-        self.rotate_speed = 0.5
+        self.speed = 2
+        self.rotate_speed = 1
         self.x = x
         self.y = y
         self.angle = angle
 
         self.live_points = 100
         self.hurt = 6
-        self.munitons_num = 20
-        self.munitons_used = 0
+        self.munitions_num = 25
+        self.munitions_used = 0
         self.shield_radius = 28
-        self.petrol = 20000
-        self.shoot_range = 150
+        self.fuel = 10000
+        self.shoot_range = 250
         self.enemy = 0
         self.hit_num = 0
         self.attack_cooldown = 0  # The rate of attacking has limits, just like normal ones
+        self.collide_cooldown = 0 # Give the gamer nearly a second to avoid collide
 
         # Initialize the drawings
         self.body = 0
@@ -190,18 +175,57 @@ class Tank:
         self.barrel = 0
         self.shield = 0
         self.shoot_circle = 0
-        self.munitons = []
+        self.munitions = []
+
 
     def set_enemy(self, enemy):
 
         self.enemy = enemy
         # Create the munitions after the enemy is set
-        self.munitons = [Munition(self.x, self.y, self.shoot_range) for _ in range(self.munitons_num)]
+        self.munitions = [Munition(self.x, self.y, self.shoot_range) for _ in range(self.munitions_num)]
 
-    def draw(self):
+
+    def draw_display_panels(self):
+
+        if self.id == 1:
+
+            self.name_display = screen.create_text(40, 30, text = self.name, font = "Times 15", fill = self.color1)
+            
+            self.live_box = screen.create_rectangle(80, 20, 180, 35, fill = "", outline = self.color1, width = 3)
+            self.live_bar = screen.create_rectangle(80, 20, 80 + self.live_points, 35, fill = self.color2)
+
+            self.live_display = screen.create_text(200, 30, text = str(self.live_points), font = "Times 12", fill = self.color1)
+
+            self.fuel_text = screen.create_text(300, 30, text = str(self.fuel) + " mL fuel", font = "Times 12", fill = self.color1)
+            self.fuel_box = screen.create_rectangle(350, 20, 450, 35, fill = "", outline = "black", width = 3)
+            self.fuel_bar = screen.create_rectangle(350, 20, 350 + self.fuel/100, 35, fill = self.color2)
+
+            self.munitions_text = screen.create_text(500, 30, text = "Munitions:", font = "Times 12", fill = self.color1)
+            self.munitions_display = screen.create_text(550, 30, text = str(self.munitions_num), font = "Times 12", fill = self.color1)
+
+        else:
+
+            self.name_display = screen.create_text(WIDTH - 40, HEIGHT - 30, text = self.name, font = "Times 15", fill = self.color1)
+
+            self.live_box = screen.create_rectangle(WIDTH - 180, HEIGHT - 35, WIDTH - 80, HEIGHT - 20, fill = "", outline = self.color1, width = 3)
+            self.live_bar = screen.create_rectangle(WIDTH - 180, HEIGHT - 35, WIDTH - 180 + self.live_points, HEIGHT - 20, fill = self.color2)
         
-        # Every time it show up it should consume petrol
-        self.petrol -= 1
+            self.live_display = screen.create_text(WIDTH - 200, HEIGHT - 30, text = str(self.live_points), font = "Times 12", fill = self.color1)
+
+            self.fuel_text = screen.create_text(WIDTH - 300, HEIGHT - 30, text = str(self.fuel) + " mL fuel", font = "Times 12", fill = self.color1)
+
+            self.fuel_box = screen.create_rectangle(WIDTH - 450, HEIGHT - 35, WIDTH - 350, HEIGHT - 20, fill = "", outline = "black", width = 3)
+            self.fuel_bar = screen.create_rectangle(WIDTH - 450, HEIGHT - 35, WIDTH - 450 + self.fuel/100, HEIGHT - 20, fill = self.color2)
+
+            self.munitions_text = screen.create_text(WIDTH - 550, HEIGHT - 30, text = "Munitions:", font = "Times 12", fill = self.color1)
+            self.munitions_display = screen.create_text(WIDTH - 500, HEIGHT - 30, text = str(self.munitions_num), font = "Times 12", fill = self.color1)
+
+
+    def draw(self, frames):
+        
+        # Every second it show up it should consume fuel
+        if frames % 144 == 0 and self.fuel > 0:
+            self.fuel -= 1
         
         # Tank components
 
@@ -212,65 +236,105 @@ class Tank:
         self.endY = self.y - 30 * sin(radians(self.angle))  # Subtract instead of add
         
         self.barrel = screen.create_line(self.x, self.y, self.endX, self.endY, fill=self.color1, width = 7)
+
+        
+        # Draw the display panels
+
+        self.draw_display_panels()
         
         # for debug
         
         self.shield = draw_circle(self.x, self.y, self.shield_radius, "", "gray")
 
-        self.shoot_circle = draw_circle(self.x, self.y, self.shoot_range, "", "red")
+        # self.shoot_circle = draw_circle(self.x, self.y, self.shoot_range, "", "red")
 
 
     def draw_munitions(self):
-        # The munitons (if launched)
 
-        for munition in self.munitons:
+        # Draw the munitions atop the components (better)
+
+        for munition in self.munitions:
             if munition.active:
                 munition.draw()
 
 
     def go(self):
-        # Move the tank forward in the direction it's pointing
-        new_x = self.x + self.speed * cos(radians(self.angle))
-        new_y = self.y - self.speed * sin(radians(self.angle))  # Subtract instead of add
-        if not self.check_collision(new_x, new_y):
-            self.x = new_x
-            self.y = new_y
+
+        if self.fuel - self.speed >= 0:
+
+            # Calculate new position
+            new_x = self.x + self.speed * cos(radians(self.angle))
+            new_y = self.y - self.speed * sin(radians(self.angle))  # Subtract instead of add
             
-            # consume petrol
-            self.petrol -= 2 * self.speed
+            # Check collision and handle movement
+            if not self.check_slight_collision(new_x, new_y):
+                self.x = new_x
+                self.y = new_y
+                # Consume petrol
+                self.fuel -= self.speed
+
 
     def go_back(self):
-        
-        # Move the tank backward in the direction it's pointing
-        new_x = self.x - self.speed * cos(radians(self.angle))
-        new_y = self.y + self.speed * sin(radians(self.angle))  # Add instead of subtract
-        if not self.check_collision(new_x, new_y):
-            self.x = new_x
-            self.y = new_y
+
+        if self.fuel - self.speed >= 0:
+            # Calculate new position
+            new_x = self.x - self.speed * cos(radians(self.angle))
+            new_y = self.y + self.speed * sin(radians(self.angle))  # Add instead of subtract
             
-            # consume petrol
-            self.petrol -= 2 * self.speed
-            
+            # Check collision and handle movement
+            if not self.check_slight_collision(new_x, new_y):
+                self.x = new_x
+                self.y = new_y
+                # Consume petrol
+                self.fuel -= self.speed
+
+         
     def rotate(self):
         self.angle = to_principal(self.angle + self.rotate_speed)
-        
+
+
     def counter_rotate(self):
         self.angle = to_principal(self.angle - self.rotate_speed)
 
-    def check_collision(self, x, y):
+
+    def check_slight_collision(self, x, y):
         
-        # Check if the tank's circular shield is within the screen boundaries
-        if (x - self.shield_radius < LEFT_WALL or x + self.shield_radius > RIGHT_WALL or
-                y - self.shield_radius < UP_WALL or y + self.shield_radius > DOWN_WALL):
+        if (x - self.shield_radius < LEFT_WALL - 1 or x + self.shield_radius > RIGHT_WALL + 1 or
+                y - self.shield_radius < UP_WALL - 1 or y + self.shield_radius > DOWN_WALL + 1):
+            
             return True
-
-        # Check for collisions with the enemy tank
-        if self.enemy != None:
+        
+        if self.enemy is not None:
             distance = calculate_distance(x, y, self.enemy.x, self.enemy.y)
-            if distance < self.shield_radius + self.enemy.shield_radius:
+            if distance < self.shield_radius + self.enemy.shield_radius - 1:
                 return True
-
+        
         return False
+    
+
+    def check_rigid_collision(self, x, y):
+        
+        if (x - self.shield_radius <= LEFT_WALL or x + self.shield_radius >= RIGHT_WALL or
+                y - self.shield_radius <= UP_WALL or y + self.shield_radius >= DOWN_WALL):
+            
+            return True
+        
+        if self.enemy is not None:
+            distance = calculate_distance(x, y, self.enemy.x, self.enemy.y)
+            if distance <= self.shield_radius + self.enemy.shield_radius:
+                return True
+        
+        return False
+
+
+    def collision_penalty(self):
+
+        if self.check_rigid_collision(self.x, self.y):
+        
+            if self.collide_cooldown == 0:
+                if self.live_points > 0:
+                    self.live_points -= 1
+                self.collide_cooldown = 200  # Reset the cooldown
     
 
     def check_shoot_success(self):
@@ -284,16 +348,15 @@ class Tank:
 
         D = calculate_distance(x1, y1, x2, y2)
 
-        print(D)
-
         K, R = self.shoot_range, self.enemy.shield_radius
+
+        print(D - R)
 
         if K < D - R:
             return False
 
         elif K == D - R:
             angle = degrees(atan2(y2 - y1, x2 - x1))
-            print(angle)
 
             return True if self.angle == angle else False
 
@@ -301,7 +364,7 @@ class Tank:
 
             angle1 = degrees(atan2(y2 - y1, x2 - x1)) - degrees(acos((D**2 + K**2 - R**2) / (2 * D * K)))
             angle2 = degrees(atan2(y2 - y1, x2 - x1)) + degrees(acos((D**2 + K**2 - R**2) / (2 * D * K)))
-            print(angle1, angle2)
+            print(angle1, self.angle, angle2)
 
             return True if self.angle >= min(angle1, angle2) and self.angle <= max(angle1, angle2) else False
 
@@ -317,12 +380,12 @@ class Tank:
         
     def attack(self):
 
-        if self.munitons_num > 0 and self.attack_cooldown <= 0:
+        if self.munitions_num > 0 and self.attack_cooldown <= 0:
 
-            self.munitons[self.munitons_used].launch(self.angle)
+            self.munitions[self.munitions_used].launch(self.angle)
 
-            self.munitons_num -= 1
-            self.munitons_used += 1
+            self.munitions_num -= 1
+            self.munitions_used += 1
 
             print(self.check_shoot_success())
 
@@ -337,29 +400,44 @@ class Tank:
 
             self.attack_cooldown = 50 # reset
 
-    def update(self):
 
-        # update the max lifespan for each munition
+    def update(self, enemy):
 
-        for munition in self.munitons:
-
+        # Update the enemy info
+        self.enemy = enemy
+        
+        # Update the max lifespan for each munition
+        for munition in self.munitions:
             munition.calculate_lifespan(self.enemy)
 
-        for munition in self.munitons:
+        # Move and update active munitions
+        for munition in self.munitions:
             if munition.active:
                 munition.move_update()
             else:
                 munition.x = self.endX
                 munition.y = self.endY
 
-        if self.attack_cooldown > 0:  # If cooldown is active
-            self.attack_cooldown -= 1  # Decrease the cooldown
+        # Decrease attack cooldown
+        if self.attack_cooldown > 0:
+            self.attack_cooldown -= 1
+
+        self.collision_penalty()
+
+        # Decrease collision cooldown
+        if self.collide_cooldown > 0:
+            self.collide_cooldown -= 1
+
 
     def delete(self):
-        screen.delete(self.body, self.platform, self.barrel, self.shield, self.shoot_circle)
 
-        for muniton in self.munitons:
-            muniton.delete()
+        screen.delete(self.body, self.platform, self.barrel, self.shield)
+        screen.delete(self.name_display, self.live_box, self.live_bar, self.live_display)
+        screen.delete(self.fuel_text, self.fuel_box, self.fuel_bar)
+        screen.delete(self.munitions_text, self.munitions_display)
+
+        for munition in self.munitions:
+            munition.delete()
 
 
 #####################################################################################################
@@ -410,46 +488,71 @@ def operationsControl():
 
     if keys_pressed["e"]:
         tank1.attack()
-        keys_pressed["e"] = False
 
     if keys_pressed["m"]:
         tank2.attack()
-        keys_pressed["m"] = False
+
+
+def GameEnds():
+
+    if tank1.live_points == 0:
+
+        return 1
+
+    if tank2.live_points == 0:
+
+        return 2
+    
+    if tank1.fuel == 0 and tank2.fuel == 0:
+
+        return 3
+    
+    return 0
+
+
+def victoryDeclare():
+
+    if GameEnds() == 1:
+        
+        screen.create_text(400, 400, text = "Player 2 wins", font = "times 20")
+
+    elif GameEnds() == 2:
+
+        screen.create_text(400, 400, text = "Player 1 wins", font = "times 20")
+
+    elif GameEnds() == 3:
+
+        screen.create_text(400, 400, text = "Both run out of fuel. Draw!", font = "times 20")
 
 
 def runGame():
+
     draw_background()
     setInitialValues()
 
     for f in range(100000):
+
         operationsControl()
 
-        tank1.draw()
-        tank2.draw()
+        tank1.draw(f)
+        tank2.draw(f)
         tank1.draw_munitions()
         tank2.draw_munitions()
-
-        tank1.update()
-        tank2.update()
+        tank1.update(tank2)
+        tank2.update(tank1)
         
-        if f % 100 == 0:
-        
-            data = str(tank1.petrol) + " : " + str(tank2.petrol)
-
-        livedata = str(tank1.live_points) + " : " + str(tank2.live_points)
-
-        cannondata = str(tank1.munitons_num) + " : " + str(tank2.munitons_num)
-
-        petroltext = screen.create_text(100, 40, text = data, font = "Times 20", fill = "red")
-        livetext = screen.create_text(300, 40, text = livedata, font = "Times 20", fill = "purple")
-        cannontext = screen.create_text(500, 40, text = cannondata, font = "Times 20", fill = "tomato")
 
         # update/sleep/delete
         screen.update()
         sleep(1 / FPS)
         tank1.delete()
         tank2.delete()
-        screen.delete(petroltext, livetext, cannontext)
+
+        if GameEnds() > 0:
+
+            break
+
+    victoryDeclare()
 
 
 # Bindings
