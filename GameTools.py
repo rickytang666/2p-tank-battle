@@ -512,6 +512,9 @@ def GameEnds():
 
 def victoryDeclare():
 
+    tank1.draw(0)
+    tank2.draw(0)
+
     if GameEnds() == 1:
         
         screen.create_text(400, 400, text = "Player 2 wins", font = "times 20")
