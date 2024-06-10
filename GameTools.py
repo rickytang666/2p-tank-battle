@@ -204,7 +204,7 @@ class Tank:
         self.ammunitions_used = 0
         self.shield_radius = 26
         self.fuel = 10000
-        self.shoot_range = 250
+        self.shoot_range = ceil(sqrt(WIDTH ** 2 + HEIGHT ** 2) / 5)
         self.enemy = 0
         self.hit_num = 0
         self.attack_cooldown = 0  # The rate of attacking has limits, just like normal ones
