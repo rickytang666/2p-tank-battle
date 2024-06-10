@@ -237,12 +237,21 @@ class Tank:
 
                 ammunition.shoot_range = self.shoot_range
 
+        elif self.special_technique == 6:
+
+            self.technique_name = "Sports Champion"
+            self.fuel *= 2
+            self.speed *= 2
+            self.rotate_speed *= 2
+
         else:
 
             self.technique_name = "Don't need anything"
 
 
     def draw_display_panels(self):
+
+        divide_factor = self.fuel/100
 
         if self.id == 1:
 
@@ -255,9 +264,17 @@ class Tank:
 
             self.fuel_text = screen.create_text(300, 30, text = str(self.fuel) + " mL fuel", font = "Arial 12", fill = self.color1)
             self.fuel_box = screen.create_rectangle(380, 20, 480, 35, fill = "", outline = "black", width = 3)
-            self.fuel_bar = screen.create_rectangle(380, 20, 380 + self.fuel/100, 35, fill = self.color2)
+            self.fuel_bar = screen.create_rectangle(380, 20, 380 + self.fuel/divide_factor, 35, fill = self.color2)
 
-            self.munitions_text = screen.create_text(550, 30, text = "Munitions: " + str(self.ammunitions_num), font = "Arial 12", fill = self.color1)
+            self.ammunitions_text = screen.create_text(550, 30, text = "Munitions: " + str(self.ammunitions_num), font = "Arial 12", fill = self.color1)
+
+            self.technique_text = screen.create_text(120, 60, text = self.technique_name, font = "Arial 14", fill = "tomato")
+
+
+
+
+
+
         
         else:
 
@@ -271,9 +288,11 @@ class Tank:
             self.fuel_text = screen.create_text(WIDTH - 300, HEIGHT - 30, text = str(self.fuel) + " mL fuel", font = "Arial 12", fill = self.color1)
 
             self.fuel_box = screen.create_rectangle(WIDTH - 480, HEIGHT - 35, WIDTH - 380, HEIGHT - 20, fill = "", outline = "black", width = 3)
-            self.fuel_bar = screen.create_rectangle(WIDTH - 480, HEIGHT - 35, WIDTH - 480 + self.fuel/100, HEIGHT - 20, fill = self.color2)
+            self.fuel_bar = screen.create_rectangle(WIDTH - 480, HEIGHT - 35, WIDTH - 480 + self.fuel/divide_factor, HEIGHT - 20, fill = self.color2)
 
-            self.munitions_text = screen.create_text(WIDTH - 550, HEIGHT - 30, text = "Munitions: " + str(self.ammunitions_num), font = "Arial 12", fill = self.color1)
+            self.ammunitions_text = screen.create_text(WIDTH - 550, HEIGHT - 30, text = "Munitions: " + str(self.ammunitions_num), font = "Arial 12", fill = self.color1)
+
+            self.technique_text = screen.create_text(WIDTH - 120, HEIGHT - 60, text = self.technique_name, font = "Arial 14", fill = "tomato")
 
 
     def draw(self, frames):
@@ -529,7 +548,8 @@ class Tank:
 
         screen.delete(self.name_display, self.live_box, self.live_bar, self.live_display)
         screen.delete(self.fuel_text, self.fuel_box, self.fuel_bar)
-        screen.delete(self.munitions_text)
+        screen.delete(self.ammunitions_text)
+        screen.delete(self.technique_text)
 
         for munition in self.ammunitions:
             munition.delete()
@@ -547,7 +567,7 @@ def setInitialValues():
     global FPS
 
     tank1 = Tank(1, LEFT_WALL + 50, UP_WALL + 50, 0, 1)
-    tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180, 0)
+    tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180, 6)
     tank1.set_enemy(tank2)
     tank2.set_enemy(tank1)
     tank1.set_special_technique()
