@@ -208,6 +208,7 @@ class Tank:
         self.enemy = 0
         self.hit_num = 0
         self.attack_cooldown = 0  # The rate of attacking has limits, just like normal ones
+        self.attack_interval = 48
         self.collide_cooldown = 0 # Give the gamer nearly a second to avoid collide
 
         # Initialize the drawings
@@ -237,12 +238,37 @@ class Tank:
 
                 ammunition.shoot_range = self.shoot_range
 
+        elif self.special_technique == 2:
+
+            self.technique_name = "Furious Shooter"
+            self.hurt = int(1.5 * self.hurt)
+
+        elif self.special_technique == 4:
+
+            self.technique_name = "Resource God"
+            self.ammunitions_num += 10
+
+            # reset the ammunitions array
+
+            self.ammunitions = [Ammunition(self.x, self.y, self.shoot_range) for _ in range(self.ammunitions_num)]
+
+        elif self.special_technique == 5:
+
+            self.technique_name = "Juggernaut"
+            self.speed /= 2
+
+
         elif self.special_technique == 6:
 
             self.technique_name = "Sports Champion"
             self.fuel *= 2
             self.speed *= 2
             self.rotate_speed *= 2
+
+        elif self.special_technique == 8:
+
+            self.technique_name = "Gatlin"
+            self.attack_interval /= 4
 
         else:
 
@@ -477,15 +503,11 @@ class Tank:
         
     def attack(self):
 
-        if self.attack_cooldown <= 0:
+        if self.attack_cooldown <= 0 and self.fuel >= 30:
 
             # Every time the barrel works, it will consume energy (fuel in the tank)
 
             self.fuel -= 30
-
-            if self.fuel < 0:
-
-                self.fuel = 0
 
             if self.ammunitions_num > 0:
 
@@ -499,13 +521,15 @@ class Tank:
                 if self.check_shoot_success():
 
                     self.hit_num += 1
+
+                    hurt = self.hurt if self.enemy.special_technique != 5 else floor(self.hurt/2)
                     
-                    if self.enemy.live_points - self.hurt <= 0:
+                    if self.enemy.live_points - hurt <= 0:
                         self.enemy.live_points = 0
                     else:
-                        self.enemy.live_points -= self.hurt
+                        self.enemy.live_points -= hurt
 
-                self.attack_cooldown = 50 # reset
+                self.attack_cooldown = self.attack_interval # reset
 
 
     def update(self, enemy):
@@ -566,8 +590,8 @@ def setInitialValues():
     global tank1, tank2  # objects
     global FPS
 
-    tank1 = Tank(1, LEFT_WALL + 50, UP_WALL + 50, 0, 1)
-    tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180, 6)
+    tank1 = Tank(1, LEFT_WALL + 50, UP_WALL + 50, 0, 5)
+    tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180, 8)
     tank1.set_enemy(tank2)
     tank2.set_enemy(tank1)
     tank1.set_special_technique()
