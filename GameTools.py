@@ -200,7 +200,7 @@ class Tank:
 
         self.live_points = 100
         self.hurt = 6
-        self.ammunitions_num = 25
+        self.ammunitions_num = 35
         self.ammunitions_used = 0
         self.shield_radius = 26
         self.fuel = 10000
