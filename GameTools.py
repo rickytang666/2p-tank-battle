@@ -242,6 +242,8 @@ class Tank:
 
             self.technique_name = "Furious Shooter"
             self.hurt = int(1.5 * self.hurt)
+            self.ammunitions_num -= 5
+            self.ammunitions = [Ammunition(self.x, self.y, self.shoot_range) for _ in range(self.ammunitions_num)]
 
         elif self.special_technique == 4:
 
@@ -590,8 +592,8 @@ def setInitialValues():
     global tank1, tank2  # objects
     global FPS
 
-    tank1 = Tank(1, LEFT_WALL + 50, UP_WALL + 50, 0, 5)
-    tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180, 8)
+    tank1 = Tank(1, LEFT_WALL + 50, UP_WALL + 50, 0, 2)
+    tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180, 6)
     tank1.set_enemy(tank2)
     tank2.set_enemy(tank1)
     tank1.set_special_technique()
