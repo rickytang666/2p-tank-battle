@@ -200,36 +200,35 @@ class Tank:
 
         if self.id == 1:
 
-            self.name_display = screen.create_text(40, 30, text = self.name, font = "Times 15", fill = self.color1)
+            self.name_display = screen.create_text(40, 30, text = self.name, font = "Arial 12", fill = self.color1)
             
             self.live_box = screen.create_rectangle(80, 20, 180, 35, fill = "", outline = self.color1, width = 3)
             self.live_bar = screen.create_rectangle(80, 20, 80 + self.live_points, 35, fill = self.color2)
 
-            self.live_display = screen.create_text(200, 30, text = str(self.live_points), font = "Times 12", fill = self.color1)
+            self.live_display = screen.create_text(200, 30, text = str(self.live_points), font = "Arial 12", fill = self.color1)
 
-            self.fuel_text = screen.create_text(300, 30, text = str(self.fuel) + " mL fuel", font = "Times 12", fill = self.color1)
-            self.fuel_box = screen.create_rectangle(350, 20, 450, 35, fill = "", outline = "black", width = 3)
-            self.fuel_bar = screen.create_rectangle(350, 20, 350 + self.fuel/100, 35, fill = self.color2)
+            self.fuel_text = screen.create_text(300, 30, text = str(self.fuel) + " mL fuel", font = "Arial 12", fill = self.color1)
+            self.fuel_box = screen.create_rectangle(380, 20, 480, 35, fill = "", outline = "black", width = 3)
+            self.fuel_bar = screen.create_rectangle(380, 20, 380 + self.fuel/100, 35, fill = self.color2)
 
-            self.munitions_text = screen.create_text(500, 30, text = "Munitions:", font = "Times 12", fill = self.color1)
-            self.munitions_display = screen.create_text(550, 30, text = str(self.munitions_num), font = "Times 12", fill = self.color1)
-
+            self.munitions_text = screen.create_text(550, 30, text = "Munitions: " + str(self.munitions_num), font = "Arial 12", fill = self.color1)
+        
         else:
 
-            self.name_display = screen.create_text(WIDTH - 40, HEIGHT - 30, text = self.name, font = "Times 15", fill = self.color1)
+            self.name_display = screen.create_text(WIDTH - 40, HEIGHT - 30, text = self.name, font = "Arial 12", fill = self.color1)
 
             self.live_box = screen.create_rectangle(WIDTH - 180, HEIGHT - 35, WIDTH - 80, HEIGHT - 20, fill = "", outline = self.color1, width = 3)
             self.live_bar = screen.create_rectangle(WIDTH - 180, HEIGHT - 35, WIDTH - 180 + self.live_points, HEIGHT - 20, fill = self.color2)
         
-            self.live_display = screen.create_text(WIDTH - 200, HEIGHT - 30, text = str(self.live_points), font = "Times 12", fill = self.color1)
+            self.live_display = screen.create_text(WIDTH - 200, HEIGHT - 30, text = str(self.live_points), font = "Arial 12", fill = self.color1)
 
-            self.fuel_text = screen.create_text(WIDTH - 300, HEIGHT - 30, text = str(self.fuel) + " mL fuel", font = "Times 12", fill = self.color1)
+            self.fuel_text = screen.create_text(WIDTH - 300, HEIGHT - 30, text = str(self.fuel) + " mL fuel", font = "Arial 12", fill = self.color1)
 
-            self.fuel_box = screen.create_rectangle(WIDTH - 450, HEIGHT - 35, WIDTH - 350, HEIGHT - 20, fill = "", outline = "black", width = 3)
-            self.fuel_bar = screen.create_rectangle(WIDTH - 450, HEIGHT - 35, WIDTH - 450 + self.fuel/100, HEIGHT - 20, fill = self.color2)
+            self.fuel_box = screen.create_rectangle(WIDTH - 480, HEIGHT - 35, WIDTH - 380, HEIGHT - 20, fill = "", outline = "black", width = 3)
+            self.fuel_bar = screen.create_rectangle(WIDTH - 480, HEIGHT - 35, WIDTH - 480 + self.fuel/100, HEIGHT - 20, fill = self.color2)
 
-            self.munitions_text = screen.create_text(WIDTH - 550, HEIGHT - 30, text = "Munitions:", font = "Times 12", fill = self.color1)
-            self.munitions_display = screen.create_text(WIDTH - 500, HEIGHT - 30, text = str(self.munitions_num), font = "Times 12", fill = self.color1)
+            self.munitions_text = screen.create_text(WIDTH - 550, HEIGHT - 30, text = "Munitions: " + str(self.munitions_num), font = "Arial 12", fill = self.color1)
+
 
 
     def draw(self, frames):
@@ -465,7 +464,7 @@ class Tank:
 
         screen.delete(self.name_display, self.live_box, self.live_bar, self.live_display)
         screen.delete(self.fuel_text, self.fuel_box, self.fuel_bar)
-        screen.delete(self.munitions_text, self.munitions_display)
+        screen.delete(self.munitions_text)
 
         for munition in self.munitions:
             munition.delete()
