@@ -14,7 +14,7 @@ LEFT_WALL, RIGHT_WALL = 80, WIDTH - 80
 UP_WALL, DOWN_WALL = 80, HEIGHT - 80
 
 myInterface = Tk()
-screen = Canvas(myInterface, width=WIDTH, height=HEIGHT, background=BACKGROUND_COL)
+screen = Canvas(myInterface, width = WIDTH, height = HEIGHT, background = BACKGROUND_COL)
 screen.pack()
 
 
@@ -37,6 +37,32 @@ def to_principal(angle):
 def calculate_distance(x1, y1, x2, y2):
     
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+
+
+def rotate_point(centerX, centerY, pointX, pointY, angle):
+
+    # Adjust the angle to follow the mathematical convention
+    angle = 90 - angle
+    if angle < 0:
+        angle += 360
+
+    # Convert the angle to radians
+    angle = radians(angle)
+
+    # Translate the point to the origin
+    tempX = pointX - centerX
+    tempY = pointY - centerY
+
+    # Perform the rotation
+    rotatedX = tempX * cos(angle) - tempY * sin(angle)
+    rotatedY = tempX * sin(angle) + tempY * cos(angle)
+
+    # Translate the point back to the original location
+    finalX = rotatedX + centerX
+    finalY = rotatedY + centerY
+
+    return finalX, finalY
 
 
 
@@ -75,7 +101,7 @@ def draw_background():
 # Classes
 
 
-class Munition:
+class Ammunition:
 
     def __init__(self, x_pos, y_pos, shoot_range):
 
@@ -153,31 +179,36 @@ class Munition:
 
 class Tank:
 
-    def __init__(self, id, x, y, angle):
+    def __init__(self, id, x, y, angle, special_technique):
+
         # Initialize the properties
         self.id = id
         self.name = "Player " + str(self.id)
+        self.special_technique = special_technique
 
         self.color1 = "blue4" if self.id == 1 else "forest green"
         self.color2 = "sky blue" if self.id == 1 else "green2"
-        self.length = 45
+        self.length = 40
         self.width = 40
         self.speed = 2
         self.rotate_speed = 1
         self.x = x
         self.y = y
         self.angle = angle
+        self.tire_length = self.length * 0.25
+        self.tire_width = self.width * 0.2
 
         self.live_points = 100
         self.hurt = 6
-        self.munitions_num = 25
-        self.munitions_used = 0
-        self.shield_radius = 28
+        self.ammunitions_num = 25
+        self.ammunitions_used = 0
+        self.shield_radius = 26
         self.fuel = 10000
-        self.shoot_range = 250
+        self.shoot_range = ceil(sqrt(WIDTH ** 2 + HEIGHT ** 2) / 5)
         self.enemy = 0
         self.hit_num = 0
         self.attack_cooldown = 0  # The rate of attacking has limits, just like normal ones
+        self.attack_interval = 48
         self.collide_cooldown = 0 # Give the gamer nearly a second to avoid collide
 
         # Initialize the drawings
@@ -186,17 +217,67 @@ class Tank:
         self.barrel = 0
         self.shield = 0
         self.shoot_circle = 0
-        self.munitions = []
+        self.ammunitions = []
 
 
     def set_enemy(self, enemy):
 
         self.enemy = enemy
         # Create the munitions after the enemy is set
-        self.munitions = [Munition(self.x, self.y, self.shoot_range) for _ in range(self.munitions_num)]
+        self.ammunitions = [Ammunition(self.x, self.y, self.shoot_range) for _ in range(self.ammunitions_num)]
+
+
+    def set_special_technique(self):
+
+        if self.special_technique == 1:
+
+            self.technique_name = "Long Shooter"
+            self.shoot_range *= 1.5
+            
+            for ammunition in self.ammunitions:
+
+                ammunition.shoot_range = self.shoot_range
+
+        elif self.special_technique == 2:
+
+            self.technique_name = "Furious Shooter"
+            self.hurt = int(1.5 * self.hurt)
+
+        elif self.special_technique == 4:
+
+            self.technique_name = "Resource God"
+            self.ammunitions_num += 10
+
+            # reset the ammunitions array
+
+            self.ammunitions = [Ammunition(self.x, self.y, self.shoot_range) for _ in range(self.ammunitions_num)]
+
+        elif self.special_technique == 5:
+
+            self.technique_name = "Juggernaut"
+            self.speed /= 2
+
+
+        elif self.special_technique == 6:
+
+            self.technique_name = "Sports Champion"
+            self.fuel *= 2
+            self.speed *= 2
+            self.rotate_speed *= 2
+
+        elif self.special_technique == 8:
+
+            self.technique_name = "Gatlin"
+            self.attack_interval /= 4
+
+        else:
+
+            self.technique_name = "Don't need anything"
 
 
     def draw_display_panels(self):
+
+        divide_factor = self.fuel/100
 
         if self.id == 1:
 
@@ -209,9 +290,17 @@ class Tank:
 
             self.fuel_text = screen.create_text(300, 30, text = str(self.fuel) + " mL fuel", font = "Arial 12", fill = self.color1)
             self.fuel_box = screen.create_rectangle(380, 20, 480, 35, fill = "", outline = "black", width = 3)
-            self.fuel_bar = screen.create_rectangle(380, 20, 380 + self.fuel/100, 35, fill = self.color2)
+            self.fuel_bar = screen.create_rectangle(380, 20, 380 + self.fuel/divide_factor, 35, fill = self.color2)
 
-            self.munitions_text = screen.create_text(550, 30, text = "Munitions: " + str(self.munitions_num), font = "Arial 12", fill = self.color1)
+            self.ammunitions_text = screen.create_text(550, 30, text = "Munitions: " + str(self.ammunitions_num), font = "Arial 12", fill = self.color1)
+
+            self.technique_text = screen.create_text(120, 60, text = self.technique_name, font = "Arial 14", fill = "tomato")
+
+
+
+
+
+
         
         else:
 
@@ -225,10 +314,11 @@ class Tank:
             self.fuel_text = screen.create_text(WIDTH - 300, HEIGHT - 30, text = str(self.fuel) + " mL fuel", font = "Arial 12", fill = self.color1)
 
             self.fuel_box = screen.create_rectangle(WIDTH - 480, HEIGHT - 35, WIDTH - 380, HEIGHT - 20, fill = "", outline = "black", width = 3)
-            self.fuel_bar = screen.create_rectangle(WIDTH - 480, HEIGHT - 35, WIDTH - 480 + self.fuel/100, HEIGHT - 20, fill = self.color2)
+            self.fuel_bar = screen.create_rectangle(WIDTH - 480, HEIGHT - 35, WIDTH - 480 + self.fuel/divide_factor, HEIGHT - 20, fill = self.color2)
 
-            self.munitions_text = screen.create_text(WIDTH - 550, HEIGHT - 30, text = "Munitions: " + str(self.munitions_num), font = "Arial 12", fill = self.color1)
+            self.ammunitions_text = screen.create_text(WIDTH - 550, HEIGHT - 30, text = "Munitions: " + str(self.ammunitions_num), font = "Arial 12", fill = self.color1)
 
+            self.technique_text = screen.create_text(WIDTH - 120, HEIGHT - 60, text = self.technique_name, font = "Arial 14", fill = "tomato")
 
 
     def draw(self, frames):
@@ -243,11 +333,29 @@ class Tank:
         self.body = draw_rotated_rectangle(self.x, self.y, self.length, self.width, self.angle, self.color2)
         self.platform = draw_rotated_rectangle(self.x, self.y, self.length * 0.6, self.width * 0.6, self.angle, self.color1)
 
-        self.endX = self.x + 30 * cos(radians(self.angle))
-        self.endY = self.y - 30 * sin(radians(self.angle))  # Subtract instead of add
+        self.endX = self.x + 32 * cos(radians(self.angle))
+        self.endY = self.y - 32 * sin(radians(self.angle))  # Subtract instead of add
         
-        self.barrel = screen.create_line(self.x, self.y, self.endX, self.endY, fill=self.color1, width = 7)
+        self.barrel = screen.create_line(self.x, self.y, self.endX, self.endY, fill = self.color1, width = 7)
+        
+        # Draw the tires
 
+        # Calculate the unrotated positions of corners of the tank
+        half_length = self.length / 2
+        half_width = self.width / 2
+        corners = [
+            (self.x - half_length, self.y - half_width),
+            (self.x - half_length, self.y + half_width),
+            (self.x + half_length, self.y - half_width),
+            (self.x + half_length, self.y + half_width)
+        ]
+
+        # Rotate and draw the tires at the corners
+        self.tires = []
+        for ox, oy in corners:
+            x, y = rotate_point(self.x, self.y, ox, oy, self.angle)
+            self.tires.append(draw_rotated_rectangle(x, y, self.tire_length, self.tire_width, self.angle, self.color1))
+        
         
         # Draw the display panels
 
@@ -268,7 +376,7 @@ class Tank:
 
         # Draw the munitions atop the components (better)
 
-        for munition in self.munitions:
+        for munition in self.ammunitions:
             if munition.active:
                 munition.draw()
 
@@ -395,35 +503,33 @@ class Tank:
         
     def attack(self):
 
-        if self.attack_cooldown <= 0:
+        if self.attack_cooldown <= 0 and self.fuel >= 30:
 
             # Every time the barrel works, it will consume energy (fuel in the tank)
 
             self.fuel -= 30
 
-            if self.fuel < 0:
+            if self.ammunitions_num > 0:
 
-                self.fuel = 0
+                self.ammunitions[self.ammunitions_used].launch(self.angle)
 
-            if self.munitions_num > 0:
-
-                self.munitions[self.munitions_used].launch(self.angle)
-
-                self.munitions_num -= 1
-                self.munitions_used += 1
+                self.ammunitions_num -= 1
+                self.ammunitions_used += 1
 
                 print(self.check_shoot_success())
 
                 if self.check_shoot_success():
 
                     self.hit_num += 1
+
+                    hurt = self.hurt if self.enemy.special_technique != 5 else floor(self.hurt/2)
                     
-                    if self.enemy.live_points - self.hurt <= 0:
+                    if self.enemy.live_points - hurt <= 0:
                         self.enemy.live_points = 0
                     else:
-                        self.enemy.live_points -= self.hurt
+                        self.enemy.live_points -= hurt
 
-                self.attack_cooldown = 50 # reset
+                self.attack_cooldown = self.attack_interval # reset
 
 
     def update(self, enemy):
@@ -432,11 +538,11 @@ class Tank:
         self.enemy = enemy
         
         # Update the max lifespan for each munition
-        for munition in self.munitions:
+        for munition in self.ammunitions:
             munition.calculate_lifespan(self.enemy)
 
         # Move and update active munitions
-        for munition in self.munitions:
+        for munition in self.ammunitions:
             if munition.active:
                 munition.move_update()
             else:
@@ -458,15 +564,18 @@ class Tank:
 
         screen.delete(self.body, self.platform, self.barrel, self.shield)
 
+        screen.delete(*self.tires)
+
         if self.shoot_circle is not None:
 
             screen.delete(self.shoot_circle)
 
         screen.delete(self.name_display, self.live_box, self.live_bar, self.live_display)
         screen.delete(self.fuel_text, self.fuel_box, self.fuel_bar)
-        screen.delete(self.munitions_text)
+        screen.delete(self.ammunitions_text)
+        screen.delete(self.technique_text)
 
-        for munition in self.munitions:
+        for munition in self.ammunitions:
             munition.delete()
 
 
@@ -477,13 +586,16 @@ class Tank:
 
 
 def setInitialValues():
+
     global tank1, tank2  # objects
     global FPS
 
-    tank1 = Tank(1, LEFT_WALL + 50, UP_WALL + 50, 0)
-    tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180)
+    tank1 = Tank(1, LEFT_WALL + 50, UP_WALL + 50, 0, 5)
+    tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180, 8)
     tank1.set_enemy(tank2)
     tank2.set_enemy(tank1)
+    tank1.set_special_technique()
+    tank2.set_special_technique()
     FPS = 144
 
 
@@ -531,7 +643,7 @@ def operationsControl():
 
 
 
-def GameEnds():
+def checkEndGame():
 
     if tank1.live_points == 0:
 
@@ -556,15 +668,15 @@ def victoryDeclare():
     tank1.draw(0)
     tank2.draw(0)
 
-    if GameEnds() == 1:
+    if checkEndGame() == 1:
         
         screen.create_text(*text_positions, text = "Player 2 wins", font = "times 20")
 
-    elif GameEnds() == 2:
+    elif checkEndGame() == 2:
 
         screen.create_text(*text_positions, text = "Player 1 wins", font = "times 20")
 
-    elif GameEnds() == 3:
+    elif checkEndGame() == 3:
 
         screen.create_text(*text_positions, text = "Both run out of fuel. Draw!", font = "times 20")
 
@@ -597,7 +709,7 @@ def runGame():
 
         f += 1
 
-        if GameEnds() > 0:
+        if checkEndGame() > 0:
 
             break
 
