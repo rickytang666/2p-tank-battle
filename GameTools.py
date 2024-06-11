@@ -200,7 +200,7 @@ class Tank:
 
         self.live_points = 100
         self.hurt = 6
-        self.ammunitions_num = 25
+        self.ammunitions_num = 35
         self.ammunitions_used = 0
         self.shield_radius = 26
         self.fuel = 10000
@@ -210,6 +210,7 @@ class Tank:
         self.attack_cooldown = 0  # The rate of attacking has limits, just like normal ones
         self.attack_interval = 48
         self.collide_cooldown = 0 # Give the gamer nearly a second to avoid collide
+        self.heal_cooldown = 0
 
         # Initialize the drawings
         self.body = 0
@@ -242,6 +243,17 @@ class Tank:
 
             self.technique_name = "Furious Shooter"
             self.hurt = int(1.5 * self.hurt)
+            self.ammunitions_num -= 5
+            self.ammunitions = [Ammunition(self.x, self.y, self.shoot_range) for _ in range(self.ammunitions_num)]
+
+        elif self.special_technique == 3:
+
+            self.technique_name = "Auto Aiming"
+            self.shoot_range = floor(self.shoot_range * 0.4)
+
+            for ammunition in self.ammunitions:
+
+                ammunition.shoot_range = self.shoot_range
 
         elif self.special_technique == 4:
 
@@ -264,6 +276,10 @@ class Tank:
             self.fuel *= 2
             self.speed *= 2
             self.rotate_speed *= 2
+
+        elif self.special_technique == 7:
+
+            self.technique_name = "Self Heal"
 
         elif self.special_technique == 8:
 
@@ -396,6 +412,8 @@ class Tank:
                 # Consume petrol
                 self.fuel -= self.speed
 
+            self.heal_handler()
+
 
     def go_back(self):
 
@@ -411,13 +429,19 @@ class Tank:
                 # Consume petrol
                 self.fuel -= self.speed
 
+            self.heal_handler()
+
          
     def rotate(self):
-        self.angle = to_principal(self.angle + self.rotate_speed)
+
+        if self.special_technique != 3:
+            self.angle = to_principal(self.angle + self.rotate_speed)
 
 
     def counter_rotate(self):
-        self.angle = to_principal(self.angle - self.rotate_speed)
+
+        if self.special_technique != 3:
+            self.angle = to_principal(self.angle - self.rotate_speed)
 
 
     def check_slight_collision(self, x, y):
@@ -458,6 +482,35 @@ class Tank:
                 if self.live_points > 0:
                     self.live_points -= 1
                 self.collide_cooldown = 200  # Reset the cooldown
+
+
+    def heal_handler(self):
+
+        # Increase self heal cooldown
+
+        if self.heal_cooldown < 200:
+
+            self.heal_cooldown += 1
+
+        else:
+
+            if self.live_points < 100:
+
+                self.live_points += 1
+
+                self.heal_cooldown = 0
+
+
+    def calculate_absolute_angle(self):
+
+        cx, cy = WIDTH/2, HEIGHT/2
+
+        x1 = self.x - cx if self.x >= cx else (-1) * (cx - self.x)
+        y1 = cy - self.y if self.y <= cy else (-1) * (self.y - cy)
+        x2 = self.enemy.x - cx if self.enemy.x >= cx else (-1) * (cx - self.enemy.x)
+        y2 = cy - self.enemy.y if self.enemy.y <= cy else (-1) * (self.enemy.y - cy)
+
+        return degrees(atan2(y2 - y1, x2 - x1))
     
 
     def check_shoot_success(self):
@@ -475,30 +528,36 @@ class Tank:
 
         print(D - R)
 
-        if K < D - R:
-            return False
+        if self.special_technique == 3:
 
-        elif K == D - R:
-            angle = degrees(atan2(y2 - y1, x2 - x1))
+            return True if K >= D - R else False
+        
+        else: 
 
-            return True if self.angle == angle else False
+            if K < D - R:
+                return False
 
-        elif D - R < K < D:
+            elif K == D - R:
+                angle = degrees(atan2(y2 - y1, x2 - x1))
 
-            angle1 = degrees(atan2(y2 - y1, x2 - x1)) - degrees(acos((D**2 + K**2 - R**2) / (2 * D * K)))
-            angle2 = degrees(atan2(y2 - y1, x2 - x1)) + degrees(acos((D**2 + K**2 - R**2) / (2 * D * K)))
-            print(angle1, self.angle, angle2)
+                return True if self.angle == angle else False
 
-            return True if self.angle >= min(angle1, angle2) and self.angle <= max(angle1, angle2) else False
+            elif D - R < K < D:
 
-        else:
+                angle1 = degrees(atan2(y2 - y1, x2 - x1)) - degrees(acos((D**2 + K**2 - R**2) / (2 * D * K)))
+                angle2 = degrees(atan2(y2 - y1, x2 - x1)) + degrees(acos((D**2 + K**2 - R**2) / (2 * D * K)))
+                print(angle1, self.angle, angle2)
 
-            angle1 = degrees(atan2(y2 - y1, x2 - x1)) - degrees(asin(R / D))
-            angle2 = degrees(atan2(y2 - y1, x2 - x1)) + degrees(asin(R / D))
-            
-            print(angle1, angle2)
+                return True if self.angle >= min(angle1, angle2) and self.angle <= max(angle1, angle2) else False
 
-            return True if self.angle >= min(angle1, angle2) and self.angle <= max(angle1, angle2) else False
+            else:
+
+                angle1 = degrees(atan2(y2 - y1, x2 - x1)) - degrees(asin(R / D))
+                angle2 = degrees(atan2(y2 - y1, x2 - x1)) + degrees(asin(R / D))
+                
+                print(angle1, angle2)
+
+                return True if self.angle >= min(angle1, angle2) and self.angle <= max(angle1, angle2) else False
         
         
     def attack(self):
@@ -536,6 +595,12 @@ class Tank:
 
         # Update the enemy info
         self.enemy = enemy
+
+        # Update its angle if it is auto aiming
+
+        if self.special_technique == 3:
+
+            self.angle = self.calculate_absolute_angle()
         
         # Update the max lifespan for each munition
         for munition in self.ammunitions:
@@ -558,6 +623,8 @@ class Tank:
         # Decrease collision cooldown
         if self.collide_cooldown > 0:
             self.collide_cooldown -= 1
+
+        
 
 
     def delete(self):
@@ -590,8 +657,8 @@ def setInitialValues():
     global tank1, tank2  # objects
     global FPS
 
-    tank1 = Tank(1, LEFT_WALL + 50, UP_WALL + 50, 0, 5)
-    tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180, 8)
+    tank1 = Tank(1, LEFT_WALL + 50, UP_WALL + 50, 0, 3)
+    tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180, 7)
     tank1.set_enemy(tank2)
     tank2.set_enemy(tank1)
     tank1.set_special_technique()
