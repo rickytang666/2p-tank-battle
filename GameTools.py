@@ -204,6 +204,7 @@ class Tank:
         self.ammunitions_used = 0
         self.shield_radius = 26
         self.fuel = 10000
+        self.full_fuel = self.fuel
         self.shoot_range = ceil(sqrt(WIDTH ** 2 + HEIGHT ** 2) / 5)
         self.enemy = 0
         self.hit_num = 0
@@ -249,6 +250,9 @@ class Tank:
         elif self.special_technique == 3:
 
             self.technique_name = "Auto Aiming"
+            self.speed = floor(self.speed * 0.5)
+            self.fuel = floor(self.fuel * 0.5)
+            self.full_fuel = self.fuel
             self.shoot_range = floor(self.shoot_range * 0.4)
 
             for ammunition in self.ammunitions:
@@ -274,6 +278,7 @@ class Tank:
 
             self.technique_name = "Sports Champion"
             self.fuel *= 2
+            self.full_fuel = self.fuel
             self.speed *= 2
             self.rotate_speed *= 2
 
@@ -293,7 +298,7 @@ class Tank:
 
     def draw_display_panels(self):
 
-        divide_factor = self.fuel/100
+        fuel_length = 0 if self.fuel == 0 else (self.fuel/self.full_fuel) * 100
 
         if self.id == 1:
 
@@ -306,9 +311,9 @@ class Tank:
 
             self.fuel_text = screen.create_text(300, 30, text = str(self.fuel) + " mL fuel", font = "Arial 12", fill = self.color1)
             self.fuel_box = screen.create_rectangle(380, 20, 480, 35, fill = "", outline = "black", width = 3)
-            self.fuel_bar = screen.create_rectangle(380, 20, 380 + self.fuel/divide_factor, 35, fill = self.color2)
+            self.fuel_bar = screen.create_rectangle(380, 20, 380 + fuel_length, 35, fill = self.color2)
 
-            self.ammunitions_text = screen.create_text(550, 30, text = "Munitions: " + str(self.ammunitions_num), font = "Arial 12", fill = self.color1)
+            self.ammunitions_text = screen.create_text(550, 30, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 12", fill = self.color1)
 
             self.technique_text = screen.create_text(120, 60, text = self.technique_name, font = "Arial 14", fill = "tomato")
 
@@ -330,9 +335,9 @@ class Tank:
             self.fuel_text = screen.create_text(WIDTH - 300, HEIGHT - 30, text = str(self.fuel) + " mL fuel", font = "Arial 12", fill = self.color1)
 
             self.fuel_box = screen.create_rectangle(WIDTH - 480, HEIGHT - 35, WIDTH - 380, HEIGHT - 20, fill = "", outline = "black", width = 3)
-            self.fuel_bar = screen.create_rectangle(WIDTH - 480, HEIGHT - 35, WIDTH - 480 + self.fuel/divide_factor, HEIGHT - 20, fill = self.color2)
+            self.fuel_bar = screen.create_rectangle(WIDTH - 480, HEIGHT - 35, WIDTH - 480 + fuel_length, HEIGHT - 20, fill = self.color2)
 
-            self.ammunitions_text = screen.create_text(WIDTH - 550, HEIGHT - 30, text = "Munitions: " + str(self.ammunitions_num), font = "Arial 12", fill = self.color1)
+            self.ammunitions_text = screen.create_text(WIDTH - 550, HEIGHT - 30, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 12", fill = self.color1)
 
             self.technique_text = screen.create_text(WIDTH - 120, HEIGHT - 60, text = self.technique_name, font = "Arial 14", fill = "tomato")
 
