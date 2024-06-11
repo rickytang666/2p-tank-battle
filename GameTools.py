@@ -121,7 +121,7 @@ class Ammunition:
         D = calculate_distance(self.x, self.y, target.x, target.y)
 
         if self.shoot_range < D:
-            self.max_lifespan = ceil(self.shoot_range/self.speed)
+            self.max_lifespan = ceil((self.shoot_range + 32)/self.speed)
         else:
             self.max_lifespan = ceil(D/self.speed)
 
@@ -190,6 +190,7 @@ class Tank:
         self.color2 = "sky blue" if self.id == 1 else "green2"
         self.length = 40
         self.width = 40
+        self.barrel_length = 32
         self.speed = 2
         self.rotate_speed = 1
         self.x = x
@@ -253,7 +254,7 @@ class Tank:
             self.speed = floor(self.speed * 0.5)
             self.fuel = floor(self.fuel * 0.5)
             self.full_fuel = self.fuel
-            self.shoot_range = floor(self.shoot_range * 0.4)
+            self.shoot_range = floor(self.shoot_range * 0.7)
 
             for ammunition in self.ammunitions:
 
@@ -277,10 +278,10 @@ class Tank:
         elif self.special_technique == 6:
 
             self.technique_name = "Sports Champion"
-            self.fuel *= 2
+            self.fuel = ceil(self.fuel * 1.5)
             self.full_fuel = self.fuel
-            self.speed *= 2
-            self.rotate_speed *= 2
+            self.speed = ceil(self.speed * 1.5)
+            self.rotate_speed = ceil(self.speed * 1.5)
 
         elif self.special_technique == 7:
 
@@ -302,20 +303,19 @@ class Tank:
 
         if self.id == 1:
 
-            self.name_display = screen.create_text(40, 30, text = self.name, font = "Arial 12", fill = self.color1)
+            self.name_display = screen.create_text(40, 25, text = self.name, font = "Arial 12", fill = self.color1)
             
-            self.live_box = screen.create_rectangle(80, 20, 180, 35, fill = "", outline = self.color1, width = 3)
-            self.live_bar = screen.create_rectangle(80, 20, 80 + self.live_points, 35, fill = self.color2)
+            self.live_box = screen.create_rectangle(80, 15, 180, 30, fill = "", outline = self.color1, width = 3)
+            self.live_bar = screen.create_rectangle(80, 15, 80 + self.live_points, 30, fill = self.color2)
+            self.live_display = screen.create_text(200, 25, text = str(self.live_points), font = "Arial 10", fill = self.color1)
 
-            self.live_display = screen.create_text(200, 30, text = str(self.live_points), font = "Arial 12", fill = self.color1)
+            self.fuel_text = screen.create_text(280, 25, text = str(self.fuel) + " mL fuel", font = "Arial 10", fill = self.color1)
+            self.fuel_box = screen.create_rectangle(330, 15, 430, 30, fill = "", outline = "black", width = 3)
+            self.fuel_bar = screen.create_rectangle(330, 15, 330 + fuel_length, 30, fill = self.color2)
 
-            self.fuel_text = screen.create_text(300, 30, text = str(self.fuel) + " mL fuel", font = "Arial 12", fill = self.color1)
-            self.fuel_box = screen.create_rectangle(380, 20, 480, 35, fill = "", outline = "black", width = 3)
-            self.fuel_bar = screen.create_rectangle(380, 20, 380 + fuel_length, 35, fill = self.color2)
+            self.ammunitions_text = screen.create_text(500, 25, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 10", fill = self.color1)
 
-            self.ammunitions_text = screen.create_text(550, 30, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 12", fill = self.color1)
-
-            self.technique_text = screen.create_text(120, 60, text = self.technique_name, font = "Arial 14", fill = "tomato")
+            self.technique_text = screen.create_text(120, 50, text = self.technique_name, font = "Arial 12", fill = "tomato")
 
 
 
@@ -325,21 +325,19 @@ class Tank:
         
         else:
 
-            self.name_display = screen.create_text(WIDTH - 40, HEIGHT - 30, text = self.name, font = "Arial 12", fill = self.color1)
+            self.name_display = screen.create_text(WIDTH - 40, HEIGHT - 25, text = self.name, font = "Arial 12", fill = self.color1)
 
-            self.live_box = screen.create_rectangle(WIDTH - 180, HEIGHT - 35, WIDTH - 80, HEIGHT - 20, fill = "", outline = self.color1, width = 3)
-            self.live_bar = screen.create_rectangle(WIDTH - 180, HEIGHT - 35, WIDTH - 180 + self.live_points, HEIGHT - 20, fill = self.color2)
-        
-            self.live_display = screen.create_text(WIDTH - 200, HEIGHT - 30, text = str(self.live_points), font = "Arial 12", fill = self.color1)
+            self.live_box = screen.create_rectangle(WIDTH - 180, HEIGHT - 30, WIDTH - 80, HEIGHT - 15, fill = "", outline = self.color1, width = 3)
+            self.live_bar = screen.create_rectangle(WIDTH - 180, HEIGHT - 30, WIDTH - 180 + self.live_points, HEIGHT - 15, fill = self.color2)
+            self.live_display = screen.create_text(WIDTH - 200, HEIGHT - 25, text = str(self.live_points), font = "Arial 10", fill = self.color1)
 
-            self.fuel_text = screen.create_text(WIDTH - 300, HEIGHT - 30, text = str(self.fuel) + " mL fuel", font = "Arial 12", fill = self.color1)
+            self.fuel_text = screen.create_text(WIDTH - 280, HEIGHT - 25, text = str(self.fuel) + " mL fuel", font = "Arial 10", fill = self.color1)
+            self.fuel_box = screen.create_rectangle(WIDTH - 430, HEIGHT - 30, WIDTH - 330, HEIGHT - 15, fill = "", outline = "black", width = 3)
+            self.fuel_bar = screen.create_rectangle(WIDTH - 430, HEIGHT - 30, WIDTH - 430 + fuel_length, HEIGHT - 15, fill = self.color2)
 
-            self.fuel_box = screen.create_rectangle(WIDTH - 480, HEIGHT - 35, WIDTH - 380, HEIGHT - 20, fill = "", outline = "black", width = 3)
-            self.fuel_bar = screen.create_rectangle(WIDTH - 480, HEIGHT - 35, WIDTH - 480 + fuel_length, HEIGHT - 20, fill = self.color2)
+            self.ammunitions_text = screen.create_text(WIDTH - 500, HEIGHT - 25, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 10", fill = self.color1)
 
-            self.ammunitions_text = screen.create_text(WIDTH - 550, HEIGHT - 30, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 12", fill = self.color1)
-
-            self.technique_text = screen.create_text(WIDTH - 120, HEIGHT - 60, text = self.technique_name, font = "Arial 14", fill = "tomato")
+            self.technique_text = screen.create_text(WIDTH - 120, HEIGHT - 50, text = self.technique_name, font = "Arial 12", fill = "tomato")
 
 
     def draw(self, frames):
@@ -354,8 +352,8 @@ class Tank:
         self.body = draw_rotated_rectangle(self.x, self.y, self.length, self.width, self.angle, self.color2)
         self.platform = draw_rotated_rectangle(self.x, self.y, self.length * 0.6, self.width * 0.6, self.angle, self.color1)
 
-        self.endX = self.x + 32 * cos(radians(self.angle))
-        self.endY = self.y - 32 * sin(radians(self.angle))  # Subtract instead of add
+        self.endX = self.x + self.barrel_length * cos(radians(self.angle))
+        self.endY = self.y - self.barrel_length * sin(radians(self.angle))  # Subtract instead of add
         
         self.barrel = screen.create_line(self.x, self.y, self.endX, self.endY, fill = self.color1, width = 7)
         
@@ -384,7 +382,7 @@ class Tank:
         
         # The shield is for testing and debug
         
-        self.shield = draw_circle(self.x, self.y, self.shield_radius, "", "gray")
+        # self.shield = draw_circle(self.x, self.y, self.shield_radius, "", "gray")
 
         # At the first 10 seconds, the game will give each player a feeling of their shooting range
 
@@ -417,7 +415,8 @@ class Tank:
                 # Consume petrol
                 self.fuel -= self.speed
 
-            self.heal_handler()
+                if self.special_technique == 7:
+                    self.heal_handler()
 
 
     def go_back(self):
@@ -433,20 +432,17 @@ class Tank:
                 self.y = new_y
                 # Consume petrol
                 self.fuel -= self.speed
-
-            self.heal_handler()
+            
+                if self.special_technique == 7:
+                    self.heal_handler()
 
          
     def rotate(self):
-
-        if self.special_technique != 3:
-            self.angle = to_principal(self.angle + self.rotate_speed)
+        self.angle = to_principal(self.angle + self.rotate_speed)
 
 
     def counter_rotate(self):
-
-        if self.special_technique != 3:
-            self.angle = to_principal(self.angle - self.rotate_speed)
+        self.angle = to_principal(self.angle - self.rotate_speed)
 
 
     def check_slight_collision(self, x, y):
@@ -493,7 +489,7 @@ class Tank:
 
         # Increase self heal cooldown
 
-        if self.heal_cooldown < 200:
+        if self.heal_cooldown < 100:
 
             self.heal_cooldown += 1
 
@@ -531,7 +527,7 @@ class Tank:
 
         K, R = self.shoot_range, self.enemy.shield_radius
 
-        print(D - R)
+        # print(D - R)
 
         if self.special_technique == 3:
 
@@ -551,7 +547,8 @@ class Tank:
 
                 angle1 = degrees(atan2(y2 - y1, x2 - x1)) - degrees(acos((D**2 + K**2 - R**2) / (2 * D * K)))
                 angle2 = degrees(atan2(y2 - y1, x2 - x1)) + degrees(acos((D**2 + K**2 - R**2) / (2 * D * K)))
-                print(angle1, self.angle, angle2)
+                
+                # print(angle1, self.angle, angle2)
 
                 return True if self.angle >= min(angle1, angle2) and self.angle <= max(angle1, angle2) else False
 
@@ -560,7 +557,7 @@ class Tank:
                 angle1 = degrees(atan2(y2 - y1, x2 - x1)) - degrees(asin(R / D))
                 angle2 = degrees(atan2(y2 - y1, x2 - x1)) + degrees(asin(R / D))
                 
-                print(angle1, angle2)
+                # print(angle1, angle2)
 
                 return True if self.angle >= min(angle1, angle2) and self.angle <= max(angle1, angle2) else False
         
@@ -575,12 +572,18 @@ class Tank:
 
             if self.ammunitions_num > 0:
 
-                self.ammunitions[self.ammunitions_used].launch(self.angle)
+                if self.special_technique == 3:
+
+                    self.ammunitions[self.ammunitions_used].launch(self.calculate_absolute_angle())
+
+                else: 
+                
+                    self.ammunitions[self.ammunitions_used].launch(self.angle)
 
                 self.ammunitions_num -= 1
                 self.ammunitions_used += 1
 
-                print(self.check_shoot_success())
+                # print(self.check_shoot_success())
 
                 if self.check_shoot_success():
 
@@ -600,12 +603,6 @@ class Tank:
 
         # Update the enemy info
         self.enemy = enemy
-
-        # Update its angle if it is auto aiming
-
-        if self.special_technique == 3:
-
-            self.angle = self.calculate_absolute_angle()
         
         # Update the max lifespan for each munition
         for munition in self.ammunitions:
@@ -616,8 +613,8 @@ class Tank:
             if munition.active:
                 munition.move_update()
             else:
-                munition.x = self.endX
-                munition.y = self.endY
+                munition.x = self.x
+                munition.y = self.y
 
         # Decrease attack cooldown
         if self.attack_cooldown > 0:
@@ -634,7 +631,11 @@ class Tank:
 
     def delete(self):
 
-        screen.delete(self.body, self.platform, self.barrel, self.shield)
+        screen.delete(self.body, self.platform, self.barrel)
+
+        if self.shield is not None:
+
+            screen.delete(self.shield)
 
         screen.delete(*self.tires)
 
@@ -737,20 +738,20 @@ def victoryDeclare():
 
     text_positions = [WIDTH/2, HEIGHT/2]
 
-    tank1.draw(0)
-    tank2.draw(0)
+    tank1.draw_display_panels()
+    tank2.draw_display_panels()
 
     if checkEndGame() == 1:
         
-        screen.create_text(*text_positions, text = "Player 2 wins", font = "times 20")
+        screen.create_text(*text_positions, text = "Player 2 wins", font = "Arial 20")
 
     elif checkEndGame() == 2:
 
-        screen.create_text(*text_positions, text = "Player 1 wins", font = "times 20")
+        screen.create_text(*text_positions, text = "Player 1 wins", font = "Arial 20")
 
     elif checkEndGame() == 3:
 
-        screen.create_text(*text_positions, text = "Both run out of fuel. Draw!", font = "times 20")
+        screen.create_text(*text_positions, text = "Both run out of fuel. Draw!", font = "Arial 20")
 
 
 
