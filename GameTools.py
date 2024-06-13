@@ -8,7 +8,7 @@ from time import *
 # Initializing the screen with constants
 
 WIDTH = 1000
-HEIGHT = 800
+HEIGHT = round((10/16) * WIDTH / 50) * 50 # In order to make the screen approx. 16:10 ratio
 BACKGROUND_COL = "white"
 LEFT_WALL, RIGHT_WALL = 80, WIDTH - 80
 UP_WALL, DOWN_WALL = 80, HEIGHT - 80
