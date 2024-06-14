@@ -3,147 +3,146 @@
 from tkinter import *
 from math import *
 from time import *
+from random import *
 
+######################################################################
 
-# Initializing the screen with constants
+class General_Methods:
 
-WIDTH = 1000
-HEIGHT = round((10/16) * WIDTH / 50) * 50 # In order to make the screen approx. 16:10 ratio
-BACKGROUND_COL = "white"
-LEFT_WALL, RIGHT_WALL = 80, WIDTH - 80
-UP_WALL, DOWN_WALL = 80, HEIGHT - 80
-
-myInterface = Tk()
-screen = Canvas(myInterface, width = WIDTH, height = HEIGHT, background = BACKGROUND_COL)
-screen.pack()
-
-
-################################################################################################
-
-
-# General drawing/calculating methods
-
-def ConvertAngle(angle):
-    return (450 - angle) % 360
-
-
-
-def to_principal(angle):
-
-    return (angle + 180) % 360 - 180
-
-
-
-def calculate_distance(x1, y1, x2, y2):
-    
-    return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-
-
-
-def rotate_point(centerX, centerY, pointX, pointY, angle):
-
-    # Adjust the angle to follow the mathematical convention
-    angle = 90 - angle
-    if angle < 0:
-        angle += 360
-
-    # Convert the angle to radians
-    angle = radians(angle)
-
-    # Translate the point to the origin
-    tempX = pointX - centerX
-    tempY = pointY - centerY
-
-    # Perform the rotation
-    rotatedX = tempX * cos(angle) - tempY * sin(angle)
-    rotatedY = tempX * sin(angle) + tempY * cos(angle)
-
-    # Translate the point back to the original location
-    finalX = rotatedX + centerX
-    finalY = rotatedY + centerY
-
-    return finalX, finalY
-
-
-
-def draw_circle(centerX, centerY, radius, fcol, ocol):
-    x1 = centerX - radius
-    x2 = centerX + radius
-    y1 = centerY - radius
-    y2 = centerY + radius
-    
-    return screen.create_oval(x1, y1, x2, y2, fill = fcol, outline = ocol)
-
-
-
-def draw_rotated_rectangle(centerX, centerY, length, width, angle, col):
-    # Calculate the corners of the rectangle
-    corners = []
-
-    for dx, dy in [(-length / 2, -width / 2), (-length / 2, width / 2), (length / 2, width / 2), (length / 2, -width / 2)]:
-        dx_rot = dx * cos(radians(angle)) + dy * sin(radians(angle))
-        dy_rot = -dx * sin(radians(angle)) + dy * cos(radians(angle))  # Subtract instead of add
-        corners.append((centerX + dx_rot, centerY + dy_rot))
-
-    return screen.create_polygon(*corners, fill=col, outline=col)
-
+    def __init__(self):
+        pass
 
     
-def draw_background():
+    # MATH
+
+    def ConvertAngle(self, angle):
+        return (450 - angle) % 360
+
+
+
+    def to_principal(self, angle):
+
+        return (angle + 180) % 360 - 180
+
+
+
+    def calculate_distance(self, x1, y1, x2, y2):
+        
+        return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+
+
+    def rotate_point(self, centerX, centerY, pointX, pointY, angle):
+
+        # Adjust the angle to follow the mathematical convention
+        angle = 90 - angle
+        if angle < 0:
+            angle += 360
+
+        # Convert the angle to radians
+        angle = radians(angle)
+
+        # Translate the point to the origin
+        tempX = pointX - centerX
+        tempY = pointY - centerY
+
+        # Perform the rotation
+        rotatedX = tempX * cos(angle) - tempY * sin(angle)
+        rotatedY = tempX * sin(angle) + tempY * cos(angle)
+
+        # Translate the point back to the original location
+        finalX = rotatedX + centerX
+        finalY = rotatedY + centerY
+
+        return finalX, finalY
+
+
+    #############################################################################
+
+    # DRAW
+
+    def draw_circle(self, screen, centerX, centerY, radius, fcol, ocol):
+        x1 = centerX - radius
+        x2 = centerX + radius
+        y1 = centerY - radius
+        y2 = centerY + radius
+        
+        return screen.create_oval(x1, y1, x2, y2, fill = fcol, outline = ocol)
+
+
+
+    def draw_rotated_rectangle(self, screen, centerX, centerY, length, width, angle, col):
+        # Calculate the corners of the rectangle
+        corners = []
+
+        for dx, dy in [(-length / 2, -width / 2), (-length / 2, width / 2), (length / 2, width / 2), (length / 2, -width / 2)]:
+            dx_rot = dx * cos(radians(angle)) + dy * sin(radians(angle))
+            dy_rot = -dx * sin(radians(angle)) + dy * cos(radians(angle))  # Subtract instead of add
+            corners.append((centerX + dx_rot, centerY + dy_rot))
+
+        return screen.create_polygon(*corners, fill=col, outline=col)
     
-    screen.create_rectangle(LEFT_WALL, UP_WALL, RIGHT_WALL, DOWN_WALL, outline = "black", width = 5)
 
 
-
-###################################################################################################
-
-
-# Classes
 
 
 class Ammunition:
 
-    def __init__(self, x_pos, y_pos, shoot_range):
+    def __init__(self, x_pos, y_pos, shoot_range, LEFT_WALL, RIGHT_WALL, UP_WALL, DOWN_WALL):
 
         self.x, self.y = x_pos, y_pos
+        self.angle = 0
+        self.width = 10
+        self.speed = 20
+
         self.active = False
         self.alive = True
 
         self.head, self.body = 0, 0
-        self.width = 10
-        self.speed = 20
+        
         self.shoot_range = shoot_range
         self.age = 0
-        self.angle = 0
+
+        self.methods = General_Methods()
+
+        self.LEFT_WALL = LEFT_WALL
+        self.RIGHT_WALL = RIGHT_WALL
+        self.UP_WALL = UP_WALL
+        self.DOWN_WALL = DOWN_WALL
+        
+
 
     def calculate_lifespan(self, target):
 
-        D = calculate_distance(self.x, self.y, target.x, target.y)
+        D = self.methods.calculate_distance(self.x, self.y, target.x, target.y)
 
         if self.shoot_range < D:
             self.max_lifespan = ceil((self.shoot_range + 32)/self.speed)
         else:
             self.max_lifespan = ceil(D/self.speed)
 
-    def draw(self):
+
+
+    def draw(self, screen):
 
         if self.active:
 
-            angle = to_principal(self.angle)
+            angle = self.methods.to_principal(self.angle)
 
             # Calculate the position of the head of the cannon
             head_x = self.x + (self.width) * cos(radians(angle))
             head_y = self.y - (self.width) * sin(radians(angle))  # Subtract instead of add
 
             # Draw the head of the cannon
-            self.head = draw_circle(head_x, head_y, self.width/2, "orange", "orange")
+            self.head = self.methods.draw_circle(screen, head_x, head_y, self.width/2, "orange", "orange")
 
             # Draw the body of the cannon
-            self.body = draw_rotated_rectangle(self.x, self.y, 2 * self.width, self.width, angle, "orange")
+            self.body = self.methods.draw_rotated_rectangle(screen, self.x, self.y, 2 * self.width, self.width, angle, "orange")
 
         else:
 
             self.head, self.body = 0, 0
+
 
 
     def launch(self, angle):
@@ -152,12 +151,13 @@ class Ammunition:
         self.angle = angle
     
 
+
     def move_update(self):
         new_x = self.x + self.speed * cos(radians(self.angle))
         new_y = self.y - self.speed * sin(radians(self.angle))
 
-        if new_x - self.width/2 < LEFT_WALL or new_x + self.width/2 > RIGHT_WALL or \
-        new_y - self.width/2 < UP_WALL or new_y + self.width/2 > DOWN_WALL:
+        if new_x - self.width/2 < self.LEFT_WALL or new_x + self.width/2 > self.RIGHT_WALL or \
+        new_y - self.width/2 < self.UP_WALL or new_y + self.width/2 > self.DOWN_WALL:
             self.alive = False
             self.active = False
         else:
@@ -170,64 +170,83 @@ class Ammunition:
                 self.age += 1
 
 
-    def delete(self):
+
+    def delete(self, screen):
 
         if self.head != 0 and self.body != 0:
             screen.delete(self.head, self.body)
 
 
 
+
+
+
 class Tank:
 
-    def __init__(self, id, x, y, angle, special_technique):
+    def __init__(self, id, special_technique, FPS, WIDTH, HEIGHT, LEFT_WALL, RIGHT_WALL, UP_WALL, DOWN_WALL):
 
-        # Initialize the properties
+        self.methods = General_Methods()
+
+        self.FPS = FPS
+        self.WIDTH = WIDTH
+        self.HEIGHT = HEIGHT
+        self.LEFT_WALL = LEFT_WALL
+        self.RIGHT_WALL = RIGHT_WALL
+        self.UP_WALL = UP_WALL
+        self.DOWN_WALL = DOWN_WALL
+
         self.id = id
-        self.name = "Player " + str(self.id)
+        self.name = "Player " + str(id)
         self.special_technique = special_technique
-
         self.color1 = "blue4" if self.id == 1 else "forest green"
         self.color2 = "sky blue" if self.id == 1 else "green2"
+
         self.length = 40
         self.width = 40
         self.barrel_length = 32
-        self.speed = 2
-        self.rotate_speed = 1
-        self.x = x
-        self.y = y
-        self.angle = angle
         self.tire_length = self.length * 0.25
         self.tire_width = self.width * 0.2
 
-        self.live_points = 100
-        self.hurt = 6
-        self.ammunitions_num = 35
-        self.ammunitions_used = 0
-        self.shield_radius = 26
-        self.fuel = 10000
-        self.full_fuel = self.fuel
-        self.shoot_range = ceil(sqrt(WIDTH ** 2 + HEIGHT ** 2) / 5)
-        self.enemy = 0
-        self.hit_num = 0
-        self.attack_cooldown = 0  # The rate of attacking has limits, just like normal ones
-        self.attack_interval = 48
-        self.collide_cooldown = 0 # Give the gamer nearly a second to avoid collide
-        self.heal_cooldown = 0
+        self.x = self.LEFT_WALL + 50 if self.id == 1 else self.RIGHT_WALL - 50
+        self.y = self.UP_WALL + 50 if self.id == 1 else self.DOWN_WALL - 50
+        self.speed = 2
+        self.rotate_speed = 1
+        self.angle = 0 if self.id == 1 else 180
 
-        # Initialize the drawings
         self.body = 0
         self.platform = 0
         self.barrel = 0
         self.shield = 0
         self.shoot_circle = 0
+        self.tires = []
+
+        self.shield_radius = 26
+        self.fuel = 10000
+        self.full_fuel = self.fuel
+        self.live_points = 100
+        self.ammunitions_num = 35
+        self.ammunitions_used = 0
         self.ammunitions = []
+
+        self.hurt = 6
+        self.shoot_range = ceil(sqrt(self.WIDTH ** 2 + self.HEIGHT ** 2) / 5)
+        self.attack_cooldown = 0
+        self.attack_cooldown = 0 
+        self.attack_interval = self.FPS // 3
+        self.collide_cooldown = 0
+        self.collide_interval = floor(self.FPS * 1.5)
+        self.heal_cooldown = 0
+        self.heal_interval = floor(self.FPS * 0.6)
 
 
     def set_enemy(self, enemy):
 
-        self.enemy = enemy
-        # Create the munitions after the enemy is set
-        self.ammunitions = [Ammunition(self.x, self.y, self.shoot_range) for _ in range(self.ammunitions_num)]
+        self.set_enemy = enemy
+
+        # Create the ammunitions after the enemy is set
+
+        self.ammunitions = [Ammunition(self.x, self.y, self.shoot_range, self.LEFT_WALL, self.RIGHT_WALL, self.UP_WALL, self.DOWN_WALL) for _ in range(self.ammunitions_num)]
+
 
 
     def set_special_technique(self):
@@ -297,7 +316,8 @@ class Tank:
             self.technique_name = "Don't need anything"
 
 
-    def draw_display_panels(self):
+
+    def draw_display_panels(self, screen):
 
         fuel_length = 0 if self.fuel == 0 else (self.fuel/self.full_fuel) * 100
 
@@ -319,41 +339,39 @@ class Tank:
 
 
 
-
-
-
         
         else:
 
-            self.name_display = screen.create_text(WIDTH - 40, HEIGHT - 25, text = self.name, font = "Arial 12", fill = self.color1)
+            self.name_display = screen.create_text(self.WIDTH - 40, self.HEIGHT - 25, text = self.name, font = "Arial 12", fill = self.color1)
 
-            self.live_box = screen.create_rectangle(WIDTH - 180, HEIGHT - 30, WIDTH - 80, HEIGHT - 15, fill = "", outline = self.color1, width = 3)
-            self.live_bar = screen.create_rectangle(WIDTH - 180, HEIGHT - 30, WIDTH - 180 + self.live_points, HEIGHT - 15, fill = self.color2)
-            self.live_display = screen.create_text(WIDTH - 200, HEIGHT - 25, text = str(self.live_points), font = "Arial 10", fill = self.color1)
+            self.live_box = screen.create_rectangle(self.WIDTH - 180, self.HEIGHT - 30, self.WIDTH - 80, self.HEIGHT - 15, fill = "", outline = self.color1, width = 3)
+            self.live_bar = screen.create_rectangle(self.WIDTH - 180, self.HEIGHT - 30, self.WIDTH - 180 + self.live_points, self.HEIGHT - 15, fill = self.color2)
+            self.live_display = screen.create_text(self.WIDTH - 200, self.HEIGHT - 25, text = str(self.live_points), font = "Arial 10", fill = self.color1)
 
-            self.fuel_text = screen.create_text(WIDTH - 280, HEIGHT - 25, text = str(self.fuel) + " mL fuel", font = "Arial 10", fill = self.color1)
-            self.fuel_box = screen.create_rectangle(WIDTH - 430, HEIGHT - 30, WIDTH - 330, HEIGHT - 15, fill = "", outline = "black", width = 3)
-            self.fuel_bar = screen.create_rectangle(WIDTH - 430, HEIGHT - 30, WIDTH - 430 + fuel_length, HEIGHT - 15, fill = self.color2)
+            self.fuel_text = screen.create_text(self.WIDTH - 280, self.HEIGHT - 25, text = str(self.fuel) + " mL fuel", font = "Arial 10", fill = self.color1)
+            self.fuel_box = screen.create_rectangle(self.WIDTH - 430, self.HEIGHT - 30, self.WIDTH - 330, self.HEIGHT - 15, fill = "", outline = "black", width = 3)
+            self.fuel_bar = screen.create_rectangle(self.WIDTH - 430, self.HEIGHT - 30, self.WIDTH - 430 + fuel_length, self.HEIGHT - 15, fill = self.color2)
 
-            self.ammunitions_text = screen.create_text(WIDTH - 500, HEIGHT - 25, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 10", fill = self.color1)
+            self.ammunitions_text = screen.create_text(self.WIDTH - 500, self.HEIGHT - 25, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 10", fill = self.color1)
 
-            self.technique_text = screen.create_text(WIDTH - 120, HEIGHT - 50, text = self.technique_name, font = "Arial 12", fill = "tomato")
+            self.technique_text = screen.create_text(self.WIDTH - 120, self.HEIGHT - 50, text = self.technique_name, font = "Arial 12", fill = "tomato")
 
 
-    def draw(self, frames):
+
+    def draw(self, screen, frames):
         
         # Every second it show up it should consume fuel
         if frames % 144 == 0 and self.fuel > 0:
 
             self.fuel -= 1
         
-        # Tank components
+        # TANK COMPONENTS
 
-        self.body = draw_rotated_rectangle(self.x, self.y, self.length, self.width, self.angle, self.color2)
-        self.platform = draw_rotated_rectangle(self.x, self.y, self.length * 0.6, self.width * 0.6, self.angle, self.color1)
+        self.body = self.methods.draw_rotated_rectangle(screen, self.x, self.y, self.length, self.width, self.angle, self.color2)
+        self.platform = self.methods.draw_rotated_rectangle(screen, self.x, self.y, self.length * 0.6, self.width * 0.6, self.angle, self.color1)
 
         self.endX = self.x + self.barrel_length * cos(radians(self.angle))
-        self.endY = self.y - self.barrel_length * sin(radians(self.angle))  # Subtract instead of add
+        self.endY = self.y - self.barrel_length * sin(radians(self.angle))  # Subtract instead of add because of tkinter angle system
         
         self.barrel = screen.create_line(self.x, self.y, self.endX, self.endY, fill = self.color1, width = 7)
         
@@ -370,15 +388,16 @@ class Tank:
         ]
 
         # Rotate and draw the tires at the corners
-        self.tires = []
+
+        self.tires = [] # reset it to empty every time
         for ox, oy in corners:
-            x, y = rotate_point(self.x, self.y, ox, oy, self.angle)
-            self.tires.append(draw_rotated_rectangle(x, y, self.tire_length, self.tire_width, self.angle, self.color1))
+            x, y = self.methods.rotate_point(self.x, self.y, ox, oy, self.angle)
+            self.tires.append(self.methods.draw_rotated_rectangle(screen, x, y, self.tire_length, self.tire_width, self.angle, self.color1))
         
         
         # Draw the display panels
 
-        self.draw_display_panels()
+        self.draw_display_panels(screen)
         
         # The shield is for testing and debug
         
@@ -388,18 +407,81 @@ class Tank:
 
         if frames > 0 and frames <= 144 * 15:
 
-            self.shoot_circle = draw_circle(self.x, self.y, self.shoot_range, "", "orange")
+            self.shoot_circle = self.methods.draw_circle(screen, self.x, self.y, self.shoot_range, "", "orange")
 
+    
 
-    def draw_munitions(self):
+    def draw_ammunitions(self, screen):
 
         # Draw the munitions atop the components (better)
 
-        for munition in self.ammunitions:
-            if munition.active:
-                munition.draw()
+        for ammunition in self.ammunitions:
+            if ammunition.active:
+                ammunition.draw(screen)
 
 
+
+    def check_slight_collision(self, x, y):
+        
+        if (x - self.shield_radius < self.LEFT_WALL - 1 or x + self.shield_radius > self.RIGHT_WALL + 1 or
+                y - self.shield_radius < self.UP_WALL - 1 or y + self.shield_radius > self.DOWN_WALL + 1):
+            
+            return True
+        
+        if self.enemy is not None:
+            distance = self.methods.calculate_distance(x, y, self.enemy.x, self.enemy.y)
+            if distance < self.shield_radius + self.enemy.shield_radius - 1:
+                return True
+        
+        return False
+    
+
+
+    def check_rigid_collision(self, x, y):
+        
+        if (x - self.shield_radius <= self.LEFT_WALL or x + self.shield_radius >= self.RIGHT_WALL or
+                y - self.shield_radius <= self.UP_WALL or y + self.shield_radius >= self.DOWN_WALL):
+            
+            return True
+        
+        if self.enemy is not None:
+            distance = self.methods.calculate_distance(x, y, self.enemy.x, self.enemy.y)
+            if distance <= self.shield_radius + self.enemy.shield_radius:
+                return True
+        
+        return False
+
+
+
+    def collision_penalty(self):
+
+        if self.check_rigid_collision(self.x, self.y):
+        
+            if self.collide_cooldown == 0:
+                if self.live_points > 0:
+                    self.live_points -= 1
+                self.collide_cooldown = self.collide_interval  # Reset the cooldown
+
+
+
+    def heal_handler(self):
+
+        # Increase self heal cooldown
+
+        if self.heal_cooldown < self.heal_interval:
+
+            self.heal_cooldown += 1
+
+        else:
+
+            if self.live_points < self.heal_interval:
+
+                self.live_points += 1
+
+                self.heal_cooldown = 0
+
+
+    
     def go(self):
 
         if self.fuel - self.speed >= 0:
@@ -419,6 +501,7 @@ class Tank:
                     self.heal_handler()
 
 
+
     def go_back(self):
 
         if self.fuel - self.speed >= 0:
@@ -436,75 +519,21 @@ class Tank:
                 if self.special_technique == 7:
                     self.heal_handler()
 
-         
+
+
     def rotate(self):
-        self.angle = to_principal(self.angle + self.rotate_speed)
+        self.angle = self.methods.to_principal(self.angle + self.rotate_speed)
+
 
 
     def counter_rotate(self):
-        self.angle = to_principal(self.angle - self.rotate_speed)
+        self.angle = self.methods.to_principal(self.angle - self.rotate_speed)
 
-
-    def check_slight_collision(self, x, y):
-        
-        if (x - self.shield_radius < LEFT_WALL - 1 or x + self.shield_radius > RIGHT_WALL + 1 or
-                y - self.shield_radius < UP_WALL - 1 or y + self.shield_radius > DOWN_WALL + 1):
-            
-            return True
-        
-        if self.enemy is not None:
-            distance = calculate_distance(x, y, self.enemy.x, self.enemy.y)
-            if distance < self.shield_radius + self.enemy.shield_radius - 1:
-                return True
-        
-        return False
-    
-
-    def check_rigid_collision(self, x, y):
-        
-        if (x - self.shield_radius <= LEFT_WALL or x + self.shield_radius >= RIGHT_WALL or
-                y - self.shield_radius <= UP_WALL or y + self.shield_radius >= DOWN_WALL):
-            
-            return True
-        
-        if self.enemy is not None:
-            distance = calculate_distance(x, y, self.enemy.x, self.enemy.y)
-            if distance <= self.shield_radius + self.enemy.shield_radius:
-                return True
-        
-        return False
-
-
-    def collision_penalty(self):
-
-        if self.check_rigid_collision(self.x, self.y):
-        
-            if self.collide_cooldown == 0:
-                if self.live_points > 0:
-                    self.live_points -= 1
-                self.collide_cooldown = 200  # Reset the cooldown
-
-
-    def heal_handler(self):
-
-        # Increase self heal cooldown
-
-        if self.heal_cooldown < 100:
-
-            self.heal_cooldown += 1
-
-        else:
-
-            if self.live_points < 100:
-
-                self.live_points += 1
-
-                self.heal_cooldown = 0
 
 
     def calculate_absolute_angle(self):
 
-        cx, cy = WIDTH/2, HEIGHT/2
+        cx, cy = self.WIDTH/2, self.HEIGHT/2
 
         x1 = self.x - cx if self.x >= cx else (-1) * (cx - self.x)
         y1 = cy - self.y if self.y <= cy else (-1) * (self.y - cy)
@@ -514,16 +543,17 @@ class Tank:
         return degrees(atan2(y2 - y1, x2 - x1))
     
 
+
     def check_shoot_success(self):
 
-        cx, cy = WIDTH/2, HEIGHT/2
+        cx, cy = self.WIDTH/2, self.HEIGHT/2
 
         x1 = self.x - cx if self.x >= cx else (-1) * (cx - self.x)
         y1 = cy - self.y if self.y <= cy else (-1) * (self.y - cy)
         x2 = self.enemy.x - cx if self.enemy.x >= cx else (-1) * (cx - self.enemy.x)
         y2 = cy - self.enemy.y if self.enemy.y <= cy else (-1) * (self.enemy.y - cy)
 
-        D = calculate_distance(x1, y1, x2, y2)
+        D = self.methods.calculate_distance(x1, y1, x2, y2)
 
         K, R = self.shoot_range, self.enemy.shield_radius
 
@@ -560,7 +590,8 @@ class Tank:
                 # print(angle1, angle2)
 
                 return True if self.angle >= min(angle1, angle2) and self.angle <= max(angle1, angle2) else False
-        
+    
+
         
     def attack(self):
 
@@ -587,8 +618,6 @@ class Tank:
 
                 if self.check_shoot_success():
 
-                    self.hit_num += 1
-
                     hurt = self.hurt if self.enemy.special_technique != 5 else floor(self.hurt/2)
                     
                     if self.enemy.live_points - hurt <= 0:
@@ -599,26 +628,34 @@ class Tank:
                 self.attack_cooldown = self.attack_interval # reset
 
 
+
     def update(self, enemy):
 
         # Update the enemy info
         self.enemy = enemy
         
-        # Update the max lifespan for each munition
-        for munition in self.ammunitions:
-            munition.calculate_lifespan(self.enemy)
+        
+        for ammunition in self.ammunitions:
 
-        # Move and update active munitions
-        for munition in self.ammunitions:
-            if munition.active:
-                munition.move_update()
+            # Update the max lifespan for each munition
+
+            ammunition.calculate_lifespan(self.enemy)
+
+            # if active, update position to animate; if not, update position with the tank
+
+            if ammunition.active:
+                ammunition.move_update()
             else:
-                munition.x = self.x
-                munition.y = self.y
+                ammunition.x = self.x
+                ammunition.y = self.y
+
+        
 
         # Decrease attack cooldown
         if self.attack_cooldown > 0:
             self.attack_cooldown -= 1
+
+        # Monitor collision and give penalty if applicable
 
         self.collision_penalty()
 
@@ -626,18 +663,16 @@ class Tank:
         if self.collide_cooldown > 0:
             self.collide_cooldown -= 1
 
-        
 
 
-    def delete(self):
+    def delete(self, screen):
 
         screen.delete(self.body, self.platform, self.barrel)
+        screen.delete(*self.tires)
 
         if self.shield is not None:
 
             screen.delete(self.shield)
-
-        screen.delete(*self.tires)
 
         if self.shoot_circle is not None:
 
@@ -649,172 +684,266 @@ class Tank:
         screen.delete(self.technique_text)
 
         for munition in self.ammunitions:
-            munition.delete()
+            munition.delete(screen)
 
 
 
-#####################################################################################################
-
-# Actual game-running related functions/procedures
 
 
-def setInitialValues():
+class Game:
 
-    global tank1, tank2  # objects
-    global FPS
+    def __init__(self):
 
-    tank1 = Tank(1, LEFT_WALL + 50, UP_WALL + 50, 0, 3)
-    tank2 = Tank(2, RIGHT_WALL - 50, DOWN_WALL - 50, 180, 7)
-    tank1.set_enemy(tank2)
-    tank2.set_enemy(tank1)
-    tank1.set_special_technique()
-    tank2.set_special_technique()
-    FPS = 144
+        self.myInterface = Tk()
+
+        self.methods = General_Methods()
+
+        self.WIDTH = 650
+        self.HEIGHT = round((4/5) * self.WIDTH / 50) * 50
+        self.LEFT_WALL, self.RIGHT_WALL = 80, self.WIDTH - 80
+        self.UP_WALL, self.DOWN_WALL = 80, self.HEIGHT - 80
+        self.BACKGROUND_COL = "white"
+        self.FPS = 144
+        self.screen_widths = {
+
+            "Chromebook" : 650,
+            "Small Laptop" : 800,
+            "Big Laptop" : 1000,
+            "Desktop" : 1200,
+
+        }
 
 
+        self.menu_screen = 0
+        self.game_screen = 0
 
-def keyDownHandler(event):
-    keys_pressed[event.keysym] = True
+        self.keys_pressed = {
+            "a": False, 
+            "d": False, 
+            "w": False, 
+            "s": False, 
+            "Left": False, 
+            "Right": False, 
+            "Up": False, 
+            "Down": False, 
+            "g" : False, 
+            "m" : False, 
+            }
 
-
-
-def keyUpHandler(event):
-    keys_pressed[event.keysym] = False
-
-
-
-def operationsControl():
-    if keys_pressed["a"]:
-        tank1.rotate()
-
-    if keys_pressed["d"]:
-        tank1.counter_rotate()
-
-    if keys_pressed["w"]:
-        tank1.go()
-
-    if keys_pressed["s"]:
-        tank1.go_back()
-
-    if keys_pressed["Left"]:
-        tank2.rotate()
-
-    if keys_pressed["Right"]:
-        tank2.counter_rotate()
-
-    if keys_pressed["Up"]:
-        tank2.go()
-
-    if keys_pressed["Down"]:
-        tank2.go_back()
-
-    if keys_pressed["g"]:
-        tank1.attack()
-
-    if keys_pressed["m"]:
-        tank2.attack()
+        self.tank1 = 0
+        self.tank2 = 0
 
 
 
-def checkEndGame():
+    def initialize_game_screen(self):
 
-    if tank1.live_points == 0:
+        self.HEIGHT = round((4/5) * self.WIDTH / 50) * 50
+        self.LEFT_WALL, self.RIGHT_WALL = 80, self.WIDTH - 80
+        self.UP_WALL, self.DOWN_WALL = 80, self.HEIGHT - 80
 
-        return 1
+        self.game_screen = Canvas(self.myInterface, width = self.WIDTH, height = self.HEIGHT, background = self.BACKGROUND_COL)
+        self.game_screen.pack()
 
-    if tank2.live_points == 0:
 
-        return 2
     
-    if tank1.fuel == 0 and tank2.fuel == 0:
+    def on_click(self, value):
 
-        return 3
+        self.WIDTH = value
+
+        self.menu_screen.destroy()
+
+        self.initialize_game_screen()
+
+        self.showWelcomeScreen()
+
+
+
+    def create_button(self, key, value, x, y):
+        
+        button = Button(self.menu_screen, text = key, command = lambda : self.on_click(value))
+        self.menu_screen.create_window(x, y, window = button, anchor = E)
+
+
+
+    def show_buttons_selections(self):
+        
+        self.menu_screen = Canvas(self.myInterface, width = 300, height = 300, bg = "white")
+        self.menu_screen.pack()
+
+        self.menu_screen.create_text(150, 25, text = "Please choose your computer type", font = "Arial 10")
+
+        x, y = 200, 75
+        for key, value in self.screen_widths.items():
+            self.create_button(key, value, x, y)
+            y += 50  # Adjust y-coordinate for next button
+
+
+        game.menu_screen.mainloop()
+
+
+
+    def draw_walls(self):
+
+        self.game_screen.create_rectangle(self.LEFT_WALL, self.UP_WALL, self.RIGHT_WALL, self.DOWN_WALL, fill = "", width = 5)
+
+
+
+    def setTanks(self):
+
+        self.tank1 = Tank(1, 3, self.FPS, self.WIDTH, self.HEIGHT, self.LEFT_WALL, self.RIGHT_WALL, self.UP_WALL, self.DOWN_WALL)
+        self.tank2 = Tank(2, 7, self.FPS, self.WIDTH, self.HEIGHT, self.LEFT_WALL, self.RIGHT_WALL, self.UP_WALL, self.DOWN_WALL)
+
+        self.tank1.set_enemy(self.tank2)
+        self.tank2.set_enemy(self.tank1)
+        self.tank1.set_special_technique()
+        self.tank2.set_special_technique()
+
+
+    def keyDownHandler(self, event):
+
+        self.keys_pressed[event.keysym] = True
+
+
+
+    def keyUpHandler(self, event):
+
+        self.keys_pressed[event.keysym] = False
+
+
     
-    return 0
+    def operationsControl(self):
+
+        if self.keys_pressed["a"]:
+            self.tank1.rotate()
+
+        if self.keys_pressed["d"]:
+            self.tank1.counter_rotate()
+
+        if self.keys_pressed["w"]:
+            self.tank1.go()
+
+        if self.keys_pressed["s"]:
+            self.tank1.go_back()
+
+        if self.keys_pressed["Left"]:
+            self.tank2.rotate()
+
+        if self.keys_pressed["Right"]:
+            self.tank2.counter_rotate()
+
+        if self.keys_pressed["Up"]:
+            self.tank2.go()
+
+        if self.keys_pressed["Down"]:
+            self.tank2.go_back()
+
+        if self.keys_pressed["g"]:
+            self.tank1.attack()
+
+        if self.keys_pressed["m"]:
+            self.tank2.attack()
 
 
+    def bindings(self):
 
-def victoryDeclare():
+        self.game_screen.bind("<Key>", self.keyDownHandler)
+        self.game_screen.bind("<KeyRelease>", self.keyUpHandler)
 
-    text_positions = [WIDTH/2, HEIGHT/2]
+        self.game_screen.focus_set()
 
-    tank1.draw_display_panels()
-    tank2.draw_display_panels()
 
-    if checkEndGame() == 1:
+    def checkEndGame(self):
+
+        if self.tank1.live_points == 0:
+
+            return 1
+
+        if self.tank2.live_points == 0:
+
+            return 2
         
-        screen.create_text(*text_positions, text = "Player 2 wins", font = "Arial 20")
+        if self.tank1.fuel == 0 and self.tank2.fuel == 0:
 
-    elif checkEndGame() == 2:
-
-        screen.create_text(*text_positions, text = "Player 1 wins", font = "Arial 20")
-
-    elif checkEndGame() == 3:
-
-        screen.create_text(*text_positions, text = "Both run out of fuel. Draw!", font = "Arial 20")
-
-
-
-def runGame():
-
-    draw_background()
-    setInitialValues()
-
-    f = 0
-
-    while True:
-
-        operationsControl()
-
-        tank1.draw(f)
-        tank2.draw(f)
-        tank1.draw_munitions()
-        tank2.draw_munitions()
-        tank1.update(tank2)
-        tank2.update(tank1)
+            return 3
         
+        return 0
+    
 
-        # update/sleep/delete
-        screen.update()
-        sleep(1 / FPS)
-        tank1.delete()
-        tank2.delete()
+    
+    def victoryDeclare(self):
 
-        f += 1
+        text_positions = [self.WIDTH/2, self.HEIGHT/2]
 
-        if checkEndGame() > 0:
+        self.tank1.draw_display_panels(self.game_screen)
+        self.tank2.draw_display_panels(self.game_screen)
 
-            break
+        if self.checkEndGame() == 1:
+            
+            self.game_screen.create_text(*text_positions, text = "Player 2 wins", font = "Arial 20")
 
-    victoryDeclare()
+        elif self.checkEndGame() == 2:
+
+            self.game_screen.create_text(*text_positions, text = "Player 1 wins", font = "Arial 20")
+
+        elif self.checkEndGame() == 3:
+
+            self.game_screen.create_text(*text_positions, text = "Both run out of fuel. Draw!", font = "Arial 20")
+
+        self.end_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2 + 50, text="(Press space to play again, Press Esc to quit)", font = "Arial 12")
+        self.game_screen.bind('<space>', self.replayGame)
+        self.game_screen.bind('<Escape>', self.quitGame)
+        self.game_screen.focus_set()
 
 
-#####################################################################################################
 
-# Bindings
 
-screen.bind("<Key>", keyDownHandler)
-screen.bind("<KeyRelease>", keyUpHandler)
+    def startGame(self, event):
+        self.game_screen.delete(self.welcome_text)
+        self.runGame()
 
-keys_pressed = {
-    "a": False, 
-    "d": False, 
-    "w": False, 
-    "s": False, 
-    "Left": False, 
-    "Right": False, 
-    "Up": False, 
-    "Down": False, 
-    "g" : False, 
-    "m" : False, 
-    }
+    def quitGame(self, event):
+        self.myInterface.quit()
 
-screen.focus_set()  # Set focus to the canvas
+    def replayGame(self, event):
+        self.game_screen.delete("all")
+        self.runGame()
 
-#####################################################################################################
+    def showWelcomeScreen(self):
+        self.welcome_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text="Welcome! (Press space to start, Press Esc to quit)", font="Arial 20")
+        self.game_screen.bind('<space>', self.startGame)
+        self.game_screen.bind('<Escape>', self.quitGame)
+        self.game_screen.focus_set()
 
-# For testing
+    def runGame(self):
+        self.bindings()
+        self.setTanks()
+        self.draw_walls()
+        f = 0
+        while True:
+            self.operationsControl()
+            self.tank1.draw(self.game_screen, f)
+            self.tank2.draw(self.game_screen, f)
+            self.tank1.draw_ammunitions(self.game_screen)
+            self.tank2.draw_ammunitions(self.game_screen)
+            self.tank1.update(self.tank2)
+            self.tank2.update(self.tank1)
+            self.game_screen.update()
+            sleep(1 / self.FPS)
+            self.tank1.delete(self.game_screen)
+            self.tank2.delete(self.game_screen)
+            f += 1
+            if self.checkEndGame() > 0:
+                break
+        self.victoryDeclare()
 
-runGame()
+    def runApplication(self):
+        self.show_buttons_selections()
 
-screen.mainloop()
+
+#####################################################################
+
+# FOR TESTING
+
+game = Game()
+
+game.runApplication()
