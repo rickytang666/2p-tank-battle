@@ -799,6 +799,7 @@ class Game:
         self.tank2.set_special_technique()
 
 
+
     def keyDownHandler(self, event):
 
         self.keys_pressed[event.keysym] = True
@@ -844,12 +845,14 @@ class Game:
             self.tank2.attack()
 
 
+
     def bindings(self):
 
         self.game_screen.bind("<Key>", self.keyDownHandler)
         self.game_screen.bind("<KeyRelease>", self.keyUpHandler)
 
         self.game_screen.focus_set()
+
 
 
     def checkEndGame(self):
@@ -896,23 +899,30 @@ class Game:
 
 
 
-
     def startGame(self, event):
         self.game_screen.delete(self.welcome_text)
         self.runGame()
 
+
+
     def quitGame(self, event):
         self.myInterface.quit()
+
+
 
     def replayGame(self, event):
         self.game_screen.delete("all")
         self.runGame()
 
+
+
     def showWelcomeScreen(self):
-        self.welcome_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text="Welcome! (Press space to start, Press Esc to quit)", font="Arial 20")
+        self.welcome_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text="Welcome! (Press space to start, Press Esc to quit)", font="Arial 16")
         self.game_screen.bind('<space>', self.startGame)
         self.game_screen.bind('<Escape>', self.quitGame)
         self.game_screen.focus_set()
+
+
 
     def runGame(self):
         self.bindings()
@@ -935,6 +945,8 @@ class Game:
             if self.checkEndGame() > 0:
                 break
         self.victoryDeclare()
+
+
 
     def runApplication(self):
         self.show_buttons_selections()
