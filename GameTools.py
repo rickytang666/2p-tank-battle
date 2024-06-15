@@ -265,7 +265,7 @@ class Tank:
             self.technique_name = "Furious Shooter"
             self.hurt = int(1.5 * self.hurt)
             self.ammunitions_num -= 5
-            self.ammunitions = [Ammunition(self.x, self.y, self.shoot_range) for _ in range(self.ammunitions_num)]
+            self.ammunitions = [Ammunition(self.x, self.y, self.shoot_range, self.LEFT_WALL, self.RIGHT_WALL, self.UP_WALL, self.DOWN_WALL) for _ in range(self.ammunitions_num)]
 
         elif self.special_technique == 3:
 
@@ -286,7 +286,7 @@ class Tank:
 
             # reset the ammunitions array
 
-            self.ammunitions = [Ammunition(self.x, self.y, self.shoot_range) for _ in range(self.ammunitions_num)]
+            self.ammunitions = [Ammunition(self.x, self.y, self.shoot_range, self.LEFT_WALL, self.RIGHT_WALL, self.UP_WALL, self.DOWN_WALL) for _ in range(self.ammunitions_num)]
 
         elif self.special_technique == 5:
 
@@ -732,6 +732,26 @@ class Game:
 
         self.tank1 = 0
         self.tank2 = 0
+        self.technique1, self.technique2 = 0, 0
+
+
+        self.technique_names = {
+
+            0 : "Don't need anything",
+            1 : "Long Shooter",
+            2 : "Furious Shooter",
+            3 : "Auto-Aiming",
+            4 : "Resource God",
+            5 : "Juggernaut",
+            6 : "Sport Champion",
+            7 : "Self Heal",
+            8 : "Gatlin"
+
+        }
+
+
+        self.player_turn = 1
+        self.game_running = False
 
 
 
@@ -790,8 +810,8 @@ class Game:
 
     def setTanks(self):
 
-        self.tank1 = Tank(1, 3, self.FPS, self.WIDTH, self.HEIGHT, self.LEFT_WALL, self.RIGHT_WALL, self.UP_WALL, self.DOWN_WALL)
-        self.tank2 = Tank(2, 7, self.FPS, self.WIDTH, self.HEIGHT, self.LEFT_WALL, self.RIGHT_WALL, self.UP_WALL, self.DOWN_WALL)
+        self.tank1 = Tank(1, self.technique1, self.FPS, self.WIDTH, self.HEIGHT, self.LEFT_WALL, self.RIGHT_WALL, self.UP_WALL, self.DOWN_WALL)
+        self.tank2 = Tank(2, self.technique2, self.FPS, self.WIDTH, self.HEIGHT, self.LEFT_WALL, self.RIGHT_WALL, self.UP_WALL, self.DOWN_WALL)
 
         self.tank1.set_enemy(self.tank2)
         self.tank2.set_enemy(self.tank1)
@@ -846,7 +866,7 @@ class Game:
 
 
 
-    def bindings(self):
+    def game_bindings(self):
 
         self.game_screen.bind("<Key>", self.keyDownHandler)
         self.game_screen.bind("<KeyRelease>", self.keyUpHandler)
@@ -892,7 +912,7 @@ class Game:
 
             self.game_screen.create_text(*text_positions, text = "Both run out of fuel. Draw!", font = "Arial 20")
 
-        self.end_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2 + 50, text="(Press space to play again, Press Esc to quit)", font = "Arial 12")
+        self.end_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2 + 50, text="(Press space to return to homepage, Press Esc to quit)", font = "Arial 12")
         self.game_screen.bind('<space>', self.replayGame)
         self.game_screen.bind('<Escape>', self.quitGame)
         self.game_screen.focus_set()
@@ -900,8 +920,45 @@ class Game:
 
 
     def startGame(self, event):
-        self.game_screen.delete(self.welcome_text)
-        self.runGame()
+
+        if not self.game_running:
+            self.game_screen.delete(self.welcome_text)
+            self.player_turn = 1
+            self.showSpecialTechniqueSelection()
+
+
+    def showSpecialTechniqueSelection(self):
+        self.special_technique_buttons = []
+        for i in range(9):
+            button = Button(self.game_screen, text=str(self.technique_names[i]), command=lambda i=i: self.onSpecialTechniqueClick(i))
+            self.special_technique_buttons.append(button)
+            self.game_screen.create_window(300, 75 + i * 35, window=button)
+
+        # Add instructions for the players
+        player_name = "First player" if self.player_turn == 1 else "Second player"
+        self.instructions = self.game_screen.create_text(self.WIDTH/2, 25, text=f"{player_name}, please choose technique", font="Arial 12")
+
+    def onSpecialTechniqueClick(self, technique):
+        if self.player_turn == 1:
+            self.technique1 = technique
+            self.player_turn = 2
+            # Remove player 1's buttons and instructions
+            for button in self.special_technique_buttons:
+                button.destroy()
+            self.game_screen.delete(self.instructions)
+            self.special_technique_buttons.clear()
+            # Show player 2's buttons
+            self.showSpecialTechniqueSelection()
+        else:
+            self.technique2 = technique
+            # Remove player 2's buttons and instructions
+            for button in self.special_technique_buttons:
+                button.destroy()
+            self.game_screen.delete(self.instructions)
+            self.special_technique_buttons.clear()
+            # Start the game
+            self.game_running = True
+            self.runGame()
 
 
 
@@ -912,12 +969,12 @@ class Game:
 
     def replayGame(self, event):
         self.game_screen.delete("all")
-        self.runGame()
+        self.showWelcomeScreen()
 
 
 
     def showWelcomeScreen(self):
-        self.welcome_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text="Welcome! (Press space to start, Press Esc to quit)", font="Arial 16")
+        self.welcome_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text="Welcome! (Press space to start, Press Esc to quit)", font="Arial 20")
         self.game_screen.bind('<space>', self.startGame)
         self.game_screen.bind('<Escape>', self.quitGame)
         self.game_screen.focus_set()
@@ -925,7 +982,7 @@ class Game:
 
 
     def runGame(self):
-        self.bindings()
+        self.game_bindings()
         self.setTanks()
         self.draw_walls()
         f = 0
@@ -943,6 +1000,7 @@ class Game:
             self.tank2.delete(self.game_screen)
             f += 1
             if self.checkEndGame() > 0:
+                self.game_running = False
                 break
         self.victoryDeclare()
 
