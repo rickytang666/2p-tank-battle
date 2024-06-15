@@ -249,27 +249,28 @@ class Tank:
 
 
 
-    def set_special_technique(self):
+    def set_special_technique(self, technique_names):
+
+        self.technique_name = technique_names[self.special_technique]
 
         if self.special_technique == 1:
-
-            self.technique_name = "Long Shooter"
+            
             self.shoot_range *= 1.5
             
             for ammunition in self.ammunitions:
 
                 ammunition.shoot_range = self.shoot_range
 
-        elif self.special_technique == 2:
 
-            self.technique_name = "Furious Shooter"
+        elif self.special_technique == 2:
+            
             self.hurt = int(1.5 * self.hurt)
             self.ammunitions_num -= 5
             self.ammunitions = [Ammunition(self.x, self.y, self.shoot_range, self.LEFT_WALL, self.RIGHT_WALL, self.UP_WALL, self.DOWN_WALL) for _ in range(self.ammunitions_num)]
 
+
         elif self.special_technique == 3:
 
-            self.technique_name = "Auto Aiming"
             self.speed = floor(self.speed * 0.5)
             self.fuel = floor(self.fuel * 0.5)
             self.full_fuel = self.fuel
@@ -279,41 +280,33 @@ class Tank:
 
                 ammunition.shoot_range = self.shoot_range
 
-        elif self.special_technique == 4:
 
-            self.technique_name = "Resource God"
+        elif self.special_technique == 4:
+            
             self.ammunitions_num += 10
 
             # reset the ammunitions array
 
             self.ammunitions = [Ammunition(self.x, self.y, self.shoot_range, self.LEFT_WALL, self.RIGHT_WALL, self.UP_WALL, self.DOWN_WALL) for _ in range(self.ammunitions_num)]
 
+
         elif self.special_technique == 5:
 
-            self.technique_name = "Juggernaut"
             self.speed /= 2
 
 
         elif self.special_technique == 6:
-
-            self.technique_name = "Sports Champion"
+            
             self.fuel = ceil(self.fuel * 1.5)
             self.full_fuel = self.fuel
             self.speed = ceil(self.speed * 1.5)
             self.rotate_speed = ceil(self.speed * 1.5)
 
-        elif self.special_technique == 7:
-
-            self.technique_name = "Self Heal"
 
         elif self.special_technique == 8:
 
             self.technique_name = "Gatlin"
             self.attack_interval /= 4
-
-        else:
-
-            self.technique_name = "Don't need anything"
 
 
 
@@ -690,6 +683,7 @@ class Tank:
 
 
 
+
 class Game:
 
     def __init__(self):
@@ -749,9 +743,30 @@ class Game:
 
         }
 
+        self.technique_descriptions = {
+
+            1 : "Longer shoot range",
+            2 : "Greater shoot hurt, but fewer ammunitions",
+            3 : "The tank aims the opponent for you, but slower speed and shorter shoot range",
+            4 : "10 more ammunitions",
+            5 : "Only half hurt when being hit, but also half speed",
+            6 : "Greater speed, fuel, and rotating speed -> More flexible",
+            7 : "Recover live points when you move",
+            8 : "Greater shooting frequency possible"
+
+        }
+
 
         self.player_turn = 1
         self.game_running = False
+
+        self.endgame_texts = {
+
+            1 : "Player 2 wins!",
+            2 : "Player 1 wins!",
+            3 : "Both run out of fuel. Draw!"
+
+        }
 
 
 
@@ -766,7 +781,7 @@ class Game:
 
 
     
-    def on_click(self, value):
+    def on_screensize_click(self, value):
 
         self.WIDTH = value
 
@@ -774,18 +789,18 @@ class Game:
 
         self.initialize_game_screen()
 
-        self.showWelcomeScreen()
+        self.startApplication()
 
 
 
     def create_button(self, key, value, x, y):
         
-        button = Button(self.menu_screen, text = key, command = lambda : self.on_click(value))
+        button = Button(self.menu_screen, text = key, command = lambda : self.on_screensize_click(value))
         self.menu_screen.create_window(x, y, window = button, anchor = E)
 
 
 
-    def show_buttons_selections(self):
+    def show_screensize_select(self):
         
         self.menu_screen = Canvas(self.myInterface, width = 300, height = 300, bg = "white")
         self.menu_screen.pack()
@@ -815,8 +830,8 @@ class Game:
 
         self.tank1.set_enemy(self.tank2)
         self.tank2.set_enemy(self.tank1)
-        self.tank1.set_special_technique()
-        self.tank2.set_special_technique()
+        self.tank1.set_special_technique(self.technique_names)
+        self.tank2.set_special_technique(self.technique_names)
 
 
 
@@ -893,29 +908,64 @@ class Game:
     
 
     
-    def victoryDeclare(self):
+    def endgame_process(self):
 
         text_positions = [self.WIDTH/2, self.HEIGHT/2]
 
         self.tank1.draw_display_panels(self.game_screen)
         self.tank2.draw_display_panels(self.game_screen)
 
-        if self.checkEndGame() == 1:
-            
-            self.game_screen.create_text(*text_positions, text = "Player 2 wins", font = "Arial 20")
+        endgame_text = self.endgame_texts[self.checkEndGame()]
 
-        elif self.checkEndGame() == 2:
+        self.game_screen.create_text(*text_positions, text = endgame_text, font = "Arial 20")
 
-            self.game_screen.create_text(*text_positions, text = "Player 1 wins", font = "Arial 20")
-
-        elif self.checkEndGame() == 3:
-
-            self.game_screen.create_text(*text_positions, text = "Both run out of fuel. Draw!", font = "Arial 20")
-
-        self.end_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2 + 50, text="(Press space to return to homepage, Press Esc to quit)", font = "Arial 12")
+        self.hint_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2 + 50, text="(Press space to return to homepage, Press Esc to quit)", font = "Arial 12")
         self.game_screen.bind('<space>', self.replayGame)
         self.game_screen.bind('<Escape>', self.quitGame)
         self.game_screen.focus_set()
+
+
+
+    def startApplication(self):
+        self.welcome_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text="Welcome! (Press space to start, Press Esc to quit)", font="Arial 16")
+        self.rules_button = Button(self.game_screen, text="Rules", command=self.show_rules)
+        self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 100, window=self.rules_button)
+        self.special_techniques_button = Button(self.game_screen, text="Special Techniques", command=self.show_techniques)
+        self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 50, window=self.special_techniques_button)
+        self.game_screen.bind('<space>', self.startGame)
+        self.game_screen.bind('<Escape>', self.quitGame)
+        self.game_screen.focus_set()
+
+
+
+    def show_rules(self):
+        self.game_screen.delete("all")
+        self.game_screen.create_text(self.WIDTH/2, 25, text="Rules", font="Arial 16")
+        self.back_button = Button(self.game_screen, text="Back", command=self.back_to_homescreen)
+        self.game_screen.create_window(self.WIDTH - 50, self.HEIGHT - 50, window=self.back_button)
+
+
+
+    def show_techniques(self):
+
+        self.game_screen.delete("all")
+        self.game_screen.create_text(self.WIDTH/2, 25, text="Special Techniques", font="Arial 16")
+
+
+        for i in range(1, 9):
+
+            self.game_screen.create_text(self.WIDTH/2, 20 + i * 50, text = self.technique_names[i], font = "Arial 12")
+            self.game_screen.create_text(self.WIDTH/2, 38 + i * 50, text = self.technique_descriptions[i], font = "Arial 10", fill = "blue")
+
+
+        self.back_button = Button(self.game_screen, text="Back", command=self.back_to_homescreen)
+        self.game_screen.create_window(self.WIDTH - 50, self.HEIGHT - 50, window=self.back_button)
+
+
+
+    def back_to_homescreen(self):
+        self.game_screen.delete("all")
+        self.startApplication()
 
 
 
@@ -923,39 +973,58 @@ class Game:
 
         if not self.game_running:
             self.game_screen.delete(self.welcome_text)
+            self.rules_button.destroy()
+            self.special_techniques_button.destroy()
             self.player_turn = 1
-            self.showSpecialTechniqueSelection()
+            self.technique_selection()
 
 
-    def showSpecialTechniqueSelection(self):
-        self.special_technique_buttons = []
+    def technique_selection(self):
+
+        self.technique_buttons = []
+
         for i in range(9):
-            button = Button(self.game_screen, text=str(self.technique_names[i]), command=lambda i=i: self.onSpecialTechniqueClick(i))
-            self.special_technique_buttons.append(button)
-            self.game_screen.create_window(300, 75 + i * 35, window=button)
+
+            button = Button(self.game_screen, text=str(self.technique_names[i]), command=lambda i=i: self.on_technique_click(i))
+            self.technique_buttons.append(button)
+            self.game_screen.create_window(300, 75 + i * 35, window = button)
 
         # Add instructions for the players
-        player_name = "First player" if self.player_turn == 1 else "Second player"
-        self.instructions = self.game_screen.create_text(self.WIDTH/2, 25, text=f"{player_name}, please choose technique", font="Arial 12")
+        player_name = "First" if self.player_turn == 1 else "Second"
+        self.select_instructions = self.game_screen.create_text(self.WIDTH/2, 25, text=f"{player_name} player, please choose technique", font="Arial 12")
 
-    def onSpecialTechniqueClick(self, technique):
+
+
+    def on_technique_click(self, technique):
+
         if self.player_turn == 1:
+
             self.technique1 = technique
-            self.player_turn = 2
+
+            self.player_turn = 2 # Switch to the second player after assigning
+
             # Remove player 1's buttons and instructions
-            for button in self.special_technique_buttons:
-                button.destroy()
-            self.game_screen.delete(self.instructions)
-            self.special_technique_buttons.clear()
+
+            for button in self.technique_buttons: button.destroy()
+
+            self.game_screen.delete(self.select_instructions)
+            self.technique_buttons.clear()
+
             # Show player 2's buttons
-            self.showSpecialTechniqueSelection()
+            self.technique_selection()
+
+        
         else:
+
             self.technique2 = technique
+
             # Remove player 2's buttons and instructions
-            for button in self.special_technique_buttons:
-                button.destroy()
-            self.game_screen.delete(self.instructions)
-            self.special_technique_buttons.clear()
+            for button in self.technique_buttons: button.destroy()
+
+            self.game_screen.delete(self.select_instructions)
+            self.technique_buttons.clear()
+
+
             # Start the game
             self.game_running = True
             self.runGame()
@@ -969,45 +1038,54 @@ class Game:
 
     def replayGame(self, event):
         self.game_screen.delete("all")
-        self.showWelcomeScreen()
+        self.startApplication()
 
-
-
-    def showWelcomeScreen(self):
-        self.welcome_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text="Welcome! (Press space to start, Press Esc to quit)", font="Arial 16")
-        self.game_screen.bind('<space>', self.startGame)
-        self.game_screen.bind('<Escape>', self.quitGame)
-        self.game_screen.focus_set()
 
 
 
     def runGame(self):
+
         self.game_bindings()
         self.setTanks()
         self.draw_walls()
+
+
         f = 0
+
         while True:
+
             self.operationsControl()
+
             self.tank1.draw(self.game_screen, f)
             self.tank2.draw(self.game_screen, f)
             self.tank1.draw_ammunitions(self.game_screen)
             self.tank2.draw_ammunitions(self.game_screen)
+
+
             self.tank1.update(self.tank2)
             self.tank2.update(self.tank1)
             self.game_screen.update()
+
             sleep(1 / self.FPS)
+
             self.tank1.delete(self.game_screen)
             self.tank2.delete(self.game_screen)
+
             f += 1
+
+
+
             if self.checkEndGame() > 0:
                 self.game_running = False
                 break
-        self.victoryDeclare()
+
+        
+        self.endgame_process()
 
 
 
     def runApplication(self):
-        self.show_buttons_selections()
+        self.show_screensize_select()
 
 
 #####################################################################
