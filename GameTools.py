@@ -770,6 +770,10 @@ class Game:
 
 
 
+    # SCREENSIZE SELECTIONS
+
+
+
     def initialize_game_screen(self):
 
         self.HEIGHT = round((4/5) * self.WIDTH / 50) * 50
@@ -778,6 +782,23 @@ class Game:
 
         self.game_screen = Canvas(self.myInterface, width = self.WIDTH, height = self.HEIGHT, background = self.BACKGROUND_COL)
         self.game_screen.pack()
+
+
+
+    def show_screensize_select(self):
+        
+        self.menu_screen = Canvas(self.myInterface, width = 300, height = 300, bg = "white")
+        self.menu_screen.pack()
+
+        self.menu_screen.create_text(150, 25, text = "Please choose your computer type", font = "Arial 10")
+
+        x, y = 200, 75
+        for key, value in self.screen_widths.items():
+            self.create_button(key, value, x, y)
+            y += 50  # Adjust y-coordinate for next button
+
+
+        game.menu_screen.mainloop()
 
 
     
@@ -800,26 +821,113 @@ class Game:
 
 
 
-    def show_screensize_select(self):
+    # BEFORE GAME GREETINGS & PREP
+
+
+    
+    def show_rules(self):
+        self.game_screen.delete("all")
+        self.game_screen.create_text(self.WIDTH/2, 25, text="Rules", font="Arial 16")
+        self.back_button = Button(self.game_screen, text="Back", command=self.back_to_homescreen)
+        self.game_screen.create_window(self.WIDTH - 50, self.HEIGHT - 50, window=self.back_button)
+
+
+
+    def show_techniques(self):
+
+        self.game_screen.delete("all")
+        self.game_screen.create_text(self.WIDTH/2, 25, text="Special Techniques", font="Arial 16")
+
+
+        for i in range(1, 9):
+
+            self.game_screen.create_text(self.WIDTH/2, 20 + i * 50, text = self.technique_names[i], font = "Arial 12")
+            self.game_screen.create_text(self.WIDTH/2, 38 + i * 50, text = self.technique_descriptions[i], font = "Arial 10", fill = "blue")
+
+
+        self.back_button = Button(self.game_screen, text="Back", command=self.back_to_homescreen)
+        self.game_screen.create_window(self.WIDTH - 50, self.HEIGHT - 50, window=self.back_button)
+
+
+
+    def back_to_homescreen(self):
+        self.game_screen.delete("all")
+        self.startApplication()
+
+
+
+    def startApplication(self):
+        self.welcome_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text="Welcome! (Press space to start, Press Esc to quit)", font="Arial 16")
+        self.rules_button = Button(self.game_screen, text="Rules", command=self.show_rules)
+        self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 100, window=self.rules_button)
+        self.special_techniques_button = Button(self.game_screen, text="Special Techniques", command=self.show_techniques)
+        self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 50, window=self.special_techniques_button)
+        self.game_screen.bind('<space>', self.startGame)
+        self.game_screen.bind('<Escape>', self.quitGame)
+        self.game_screen.focus_set()
+
+
+
+    def startGame(self, event):
+
+        if not self.game_running:
+            self.game_screen.delete(self.welcome_text)
+            self.rules_button.destroy()
+            self.special_techniques_button.destroy()
+            self.player_turn = 1
+            self.technique_selection()
+
+
+
+    def technique_selection(self):
+
+        self.technique_buttons = []
+
+        for i in range(9):
+
+            button = Button(self.game_screen, text=str(self.technique_names[i]), command=lambda i=i: self.on_technique_click(i))
+            self.technique_buttons.append(button)
+            self.game_screen.create_window(300, 75 + i * 35, window = button)
+
+        # Add instructions for the players
+        player_name = "First" if self.player_turn == 1 else "Second"
+        self.select_instructions = self.game_screen.create_text(self.WIDTH/2, 25, text=f"{player_name} player, please choose technique", font="Arial 12")
+
+
+
+    def on_technique_click(self, technique):
+
+        if self.player_turn == 1:
+
+            self.technique1 = technique
+
+            self.player_turn = 2 # Switch to the second player after assigning
+
+            # Remove player 1's buttons and instructions
+
+            for button in self.technique_buttons: button.destroy()
+
+            self.game_screen.delete(self.select_instructions)
+            self.technique_buttons.clear()
+
+            # Show player 2's buttons
+            self.technique_selection()
+
         
-        self.menu_screen = Canvas(self.myInterface, width = 300, height = 300, bg = "white")
-        self.menu_screen.pack()
+        else:
 
-        self.menu_screen.create_text(150, 25, text = "Please choose your computer type", font = "Arial 10")
+            self.technique2 = technique
 
-        x, y = 200, 75
-        for key, value in self.screen_widths.items():
-            self.create_button(key, value, x, y)
-            y += 50  # Adjust y-coordinate for next button
+            # Remove player 2's buttons and instructions
+            for button in self.technique_buttons: button.destroy()
 
-
-        game.menu_screen.mainloop()
+            self.game_screen.delete(self.select_instructions)
+            self.technique_buttons.clear()
 
 
-
-    def draw_walls(self):
-
-        self.game_screen.create_rectangle(self.LEFT_WALL, self.UP_WALL, self.RIGHT_WALL, self.DOWN_WALL, fill = "", width = 5)
+            # Start the game
+            self.game_running = True
+            self.runGame()
 
 
 
@@ -833,6 +941,9 @@ class Game:
         self.tank1.set_special_technique(self.technique_names)
         self.tank2.set_special_technique(self.technique_names)
 
+
+
+    # KEY CONTROL
 
 
     def keyDownHandler(self, event):
@@ -890,6 +1001,10 @@ class Game:
 
 
 
+    # POST-GAME
+
+
+
     def checkEndGame(self):
 
         if self.tank1.live_points == 0:
@@ -926,108 +1041,18 @@ class Game:
 
 
 
-    def startApplication(self):
-        self.welcome_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text="Welcome! (Press space to start, Press Esc to quit)", font="Arial 16")
-        self.rules_button = Button(self.game_screen, text="Rules", command=self.show_rules)
-        self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 100, window=self.rules_button)
-        self.special_techniques_button = Button(self.game_screen, text="Special Techniques", command=self.show_techniques)
-        self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 50, window=self.special_techniques_button)
-        self.game_screen.bind('<space>', self.startGame)
-        self.game_screen.bind('<Escape>', self.quitGame)
-        self.game_screen.focus_set()
+    # GAME ENVIRONMENT DRAWINGS
+
+
+    
+    def draw_walls(self):
+
+        self.game_screen.create_rectangle(self.LEFT_WALL, self.UP_WALL, self.RIGHT_WALL, self.DOWN_WALL, fill = "", width = 5)
 
 
 
-    def show_rules(self):
-        self.game_screen.delete("all")
-        self.game_screen.create_text(self.WIDTH/2, 25, text="Rules", font="Arial 16")
-        self.back_button = Button(self.game_screen, text="Back", command=self.back_to_homescreen)
-        self.game_screen.create_window(self.WIDTH - 50, self.HEIGHT - 50, window=self.back_button)
 
-
-
-    def show_techniques(self):
-
-        self.game_screen.delete("all")
-        self.game_screen.create_text(self.WIDTH/2, 25, text="Special Techniques", font="Arial 16")
-
-
-        for i in range(1, 9):
-
-            self.game_screen.create_text(self.WIDTH/2, 20 + i * 50, text = self.technique_names[i], font = "Arial 12")
-            self.game_screen.create_text(self.WIDTH/2, 38 + i * 50, text = self.technique_descriptions[i], font = "Arial 10", fill = "blue")
-
-
-        self.back_button = Button(self.game_screen, text="Back", command=self.back_to_homescreen)
-        self.game_screen.create_window(self.WIDTH - 50, self.HEIGHT - 50, window=self.back_button)
-
-
-
-    def back_to_homescreen(self):
-        self.game_screen.delete("all")
-        self.startApplication()
-
-
-
-    def startGame(self, event):
-
-        if not self.game_running:
-            self.game_screen.delete(self.welcome_text)
-            self.rules_button.destroy()
-            self.special_techniques_button.destroy()
-            self.player_turn = 1
-            self.technique_selection()
-
-
-    def technique_selection(self):
-
-        self.technique_buttons = []
-
-        for i in range(9):
-
-            button = Button(self.game_screen, text=str(self.technique_names[i]), command=lambda i=i: self.on_technique_click(i))
-            self.technique_buttons.append(button)
-            self.game_screen.create_window(300, 75 + i * 35, window = button)
-
-        # Add instructions for the players
-        player_name = "First" if self.player_turn == 1 else "Second"
-        self.select_instructions = self.game_screen.create_text(self.WIDTH/2, 25, text=f"{player_name} player, please choose technique", font="Arial 12")
-
-
-
-    def on_technique_click(self, technique):
-
-        if self.player_turn == 1:
-
-            self.technique1 = technique
-
-            self.player_turn = 2 # Switch to the second player after assigning
-
-            # Remove player 1's buttons and instructions
-
-            for button in self.technique_buttons: button.destroy()
-
-            self.game_screen.delete(self.select_instructions)
-            self.technique_buttons.clear()
-
-            # Show player 2's buttons
-            self.technique_selection()
-
-        
-        else:
-
-            self.technique2 = technique
-
-            # Remove player 2's buttons and instructions
-            for button in self.technique_buttons: button.destroy()
-
-            self.game_screen.delete(self.select_instructions)
-            self.technique_buttons.clear()
-
-
-            # Start the game
-            self.game_running = True
-            self.runGame()
+    # GENERAL RUNNINGS
 
 
 
@@ -1039,7 +1064,6 @@ class Game:
     def replayGame(self, event):
         self.game_screen.delete("all")
         self.startApplication()
-
 
 
 
