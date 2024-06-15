@@ -974,7 +974,7 @@ class Game:
 
 
     def showWelcomeScreen(self):
-        self.welcome_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text="Welcome! (Press space to start, Press Esc to quit)", font="Arial 20")
+        self.welcome_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text="Welcome! (Press space to start, Press Esc to quit)", font="Arial 16")
         self.game_screen.bind('<space>', self.startGame)
         self.game_screen.bind('<Escape>', self.quitGame)
         self.game_screen.focus_set()
