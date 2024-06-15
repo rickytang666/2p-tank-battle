@@ -239,6 +239,7 @@ class Tank:
         self.heal_interval = floor(self.FPS * 0.6)
 
 
+
     def set_enemy(self, enemy):
 
         self.set_enemy = enemy
@@ -354,7 +355,7 @@ class Tank:
     def draw(self, screen, frames):
         
         # Every second it show up it should consume fuel
-        if frames % 144 == 0 and self.fuel > 0:
+        if frames % self.FPS == 0 and self.fuel > 0:
 
             self.fuel -= 1
         
@@ -391,14 +392,16 @@ class Tank:
         # Draw the display panels
 
         self.draw_display_panels(screen)
+
         
-        # The shield is for testing and debug
+        # "ACCESSIBILITY" STUFF
         
         # self.shield = draw_circle(self.x, self.y, self.shield_radius, "", "gray")
 
-        # At the first 10 seconds, the game will give each player a feeling of their shooting range
 
-        if frames > 0 and frames <= 144 * 15:
+        # At the first 15 seconds, the game will give each player their shooting range
+
+        if frames > 0 and frames <= self.FPS * 15:
 
             self.shoot_circle = self.methods.draw_circle(screen, self.x, self.y, self.shoot_range, "", "orange")
 
@@ -756,6 +759,18 @@ class Game:
 
         }
 
+        self.rules_descriptions = [
+
+            "Tanks start with 100 live points; reaching 0 means losing.",
+            "A normal tank has 35 ammunitions for shooting.",
+            "Fuel begins at 10,000 mL for a normal tank.",
+            "Fuel is consumed by moving (1 mL/pixel), shooting, and time (1 mL/second).",
+            "The normal shooting range is 1/4 of the screen.",
+            "Normal tanks lose 6 points per hit and 1 point every 1.5 seconds when colliding.",
+            "One (or none) special technique can be chosen by each player."
+
+        ]
+
 
         self.player_turn = 1
         self.game_running = False
@@ -826,8 +841,16 @@ class Game:
 
     
     def show_rules(self):
+
         self.game_screen.delete("all")
         self.game_screen.create_text(self.WIDTH/2, 25, text="Rules", font="Arial 16")
+
+
+        for i in range(len(self.rules_descriptions)):
+
+            self.game_screen.create_text(self.WIDTH/2, 50 + i * 40, text = self.rules_descriptions[i], font = "Arial 11")
+
+
         self.back_button = Button(self.game_screen, text="Back", command=self.back_to_homescreen)
         self.game_screen.create_window(self.WIDTH - 50, self.HEIGHT - 50, window=self.back_button)
 
