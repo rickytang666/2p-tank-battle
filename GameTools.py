@@ -93,7 +93,7 @@ class Ammunition:
         self.x, self.y = x_pos, y_pos
         self.angle = 0
         self.width = 10
-        self.speed = 20
+        self.speed = 10
 
         self.active = False
         self.alive = True
@@ -301,7 +301,7 @@ class Tank:
             self.fuel = ceil(self.fuel * 1.5)
             self.full_fuel = self.fuel
             self.speed = ceil(self.speed * 1.5)
-            self.rotate_speed = ceil(self.speed * 1.5)
+            self.rotate_speed = ceil(self.rotate_speed * 1.5)
 
 
         elif self.special_technique == 8:
