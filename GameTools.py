@@ -1,4 +1,4 @@
-# Importing neccesary packages
+# PACKAGES
 
 from tkinter import *
 from math import *
@@ -6,6 +6,10 @@ from time import *
 from random import *
 
 ######################################################################
+
+# CLASSES
+
+
 
 class General_Methods:
 
@@ -61,13 +65,56 @@ class General_Methods:
 
     # DRAW
 
-    def draw_circle(self, screen, centerX, centerY, radius, fcol, ocol):
-        x1 = centerX - radius
-        x2 = centerX + radius
-        y1 = centerY - radius
-        y2 = centerY + radius
+    def draw_oval(self, screen, centerX, centerY, hori_radius, vert_radius, fcol, ocol, width = 1):
+
+        x1 = centerX - hori_radius
+        x2 = centerX + hori_radius
+        y1 = centerY - vert_radius
+        y2 = centerY + vert_radius
+
+        return screen.create_oval(x1, y1, x2, y2, fill = fcol, outline = ocol, width = width)
+    
+
+
+    def draw_circle(self, screen, centerX, centerY, radius, fcol, ocol, width = 1):
         
-        return screen.create_oval(x1, y1, x2, y2, fill = fcol, outline = ocol)
+        return self.draw_oval(screen, centerX, centerY, radius, radius, fcol, ocol, width)
+    
+
+
+    def draw_rectangle(self, screen, centerX, centerY, length, width, fcol, ocol, stroke = 1):
+
+
+        hori_radius = length/2
+        vert_radius = width/2
+        x1 = centerX - hori_radius
+        x2 = centerX + hori_radius
+        y1 = centerY - vert_radius
+        y2 = centerY + vert_radius
+
+        return screen.create_rectangle(x1, y1, x2, y2, fill = fcol, outline = ocol, width = stroke)
+
+
+
+    def draw_square(self, screen, centerX, centerY, side_length, fcol, ocol, stroke = 1):
+
+        return self.draw_rectangle(screen, centerX, centerY, side_length, side_length, fcol, ocol, stroke)
+    
+
+
+    def draw_arrow(self, screen, centerX, centerY, length, direction, color):
+
+        width = length/4
+
+        tail = self.draw_rectangle(screen, centerX - direction * width, centerY, length, width, color, color)
+
+        coordinates = [centerX + direction * width, centerY - width,
+                       centerX + direction * width * 3, centerY,
+                       centerX + direction * width, centerY + width]
+        
+        head = screen.create_polygon(*coordinates, fill = color, outline = color)
+
+        return [tail, head]
 
 
 
@@ -82,6 +129,153 @@ class General_Methods:
 
         return screen.create_polygon(*corners, fill=col, outline=col)
     
+
+
+    def draw_eye(self, screen, centerX, centerY, eyeball_width):
+
+        radius = eyeball_width/2
+
+        eyeball = self.draw_circle(screen, centerX, centerY, radius, "DodgerBlue2", "DodgerBlue2")
+
+        outer_part = self.draw_oval(screen, centerX, centerY, radius * 2, radius, "", "black", 2)
+
+        return [eyeball, outer_part]
+    
+
+    
+    def draw_explosion(self, screen, centerX, centerY, diameter, color):
+
+        # Calculate the radius
+
+        radius = diameter / 2
+
+        # Calculate the points for the outer and inner polygons
+
+        points = []
+
+        spikes_num = 10
+
+        for i in range(spikes_num):  # Number of spikes
+
+            angle = i * (2 * pi) / spikes_num # 2pi is 360 degrees
+            outer_x = centerX + radius * cos(angle)
+            outer_y = centerY + radius * sin(angle)
+            inner_x = centerX + (radius / 2) * cos(angle + pi / spikes_num)
+            inner_y = centerY + (radius / 2) * sin(angle + pi / spikes_num)
+            points.extend([outer_x, outer_y, inner_x, inner_y])
+
+        # Draw the outer and inner polygons
+
+        return screen.create_polygon(*points, fill = color, outline = color)
+    
+
+
+    def draw_range_icon(self, screen, centerX, centerY, diameter):
+
+        radius = diameter/2
+
+        outer = self.draw_circle(screen, centerX, centerY, radius, "", "cornflower blue", diameter/10)
+
+        arrow1 = self.draw_arrow(screen, centerX - radius * 0.4, centerY, radius * 0.5, -1, "orchid2")
+
+        arrow2 = self.draw_arrow(screen, centerX + radius * 0.4, centerY, radius * 0.5, 1, "purple3")
+
+        return [outer, arrow1, arrow2]
+
+
+
+    def draw_explosion_icon(self, screen, centerX, centerY, diameter):
+
+        outer_part = self.draw_explosion(screen, centerX, centerY, diameter, "tomato")
+
+        inner_part = self.draw_explosion(screen, centerX, centerY, diameter * 0.6, "orange")
+
+        return [outer_part, inner_part]
+    
+
+    
+    def draw_resource_icon(self, screen, centerX, centerY, length):
+
+        box = self.draw_rectangle(screen, centerX, centerY, length, length * 0.7, "", "brown3", length/20)
+
+        circle = self.draw_circle(screen, centerX, centerY, length/4, "brown3", "brown3")
+
+        plus_sign = screen.create_text(centerX + length * 0.8, centerY, text = "+", font = "Arial " + str(int(length * 0.6)), fill = "brown3")
+
+        return [box, circle, plus_sign]
+    
+
+
+    def draw_shield(self, screen, x1, y1, length):
+
+        stroke = length/6
+
+        width = (length * 2)/3
+
+        coordinates = [x1, y1,
+                       x1 + width, y1,
+                       x1 + width, y1 + length * 0.7,
+                       x1 + width/2, y1 + length,
+                       x1, y1 + length  * 0.7]
+        
+        return screen.create_polygon(*coordinates, fill = "green3", outline = "green4", width = stroke)
+    
+
+
+    def draw_sport_icon(self, screen, centerX, centerY, size, color="black"):
+        
+        # Calculate the points for the figure
+        head_radius = size / 10
+        body_length = size * 0.4
+        leg_length = size / 3
+        arm_length = size / 4
+        width = size/20
+
+        # Draw the head
+        
+        # Draw the head
+        head = self.draw_circle(screen, centerX, centerY, head_radius, color, color)
+
+        # Draw the body
+        body = screen.create_line(centerX, centerY, centerX, centerY + body_length, fill=color, width = width)
+
+        # Draw the legs
+        leg1 = screen.create_line(centerX, centerY + body_length, centerX - leg_length / 2, centerY + body_length + leg_length, fill=color, width = width)
+        leg2 = screen.create_line(centerX, centerY + body_length, centerX + leg_length / 2, centerY + body_length + leg_length, fill=color, width = width)
+
+        # Draw the arms
+        arm1 = screen.create_line(centerX, centerY + body_length / 2, centerX - arm_length, centerY + body_length / 2, fill=color, width = width)
+        arm2 = screen.create_line(centerX, centerY + body_length / 2, centerX + arm_length, centerY + body_length / 2, fill=color, width = width)
+
+        return [head, body, leg1, leg2, arm1, arm2]
+
+
+
+    def draw_heal_icon(self, screen, centerX, centerY, width):
+
+        stroke = width * 0.2
+
+        line1 = screen.create_line(centerX, centerY - width * 0.4, centerX, centerY + width * 0.4, fill = "tomato", width = stroke)
+        line2 = screen.create_line(centerX - width * 0.4, centerY, centerX + width * 0.4, centerY, fill = "tomato", width = stroke)
+
+        outer_part = self.draw_square(screen, centerX, centerY, width, "", "tomato", width * 0.1)
+
+        return [line1, line2, outer_part]
+    
+
+
+    def draw_gatlin_icon(self, screen, centerX, centerY, diameter):
+
+        radius = diameter/2
+
+        circle_base = self.draw_circle(screen, centerX, centerY, radius, "light goldenrod", "light goldenrod")
+
+        arrow1 = self.draw_arrow(screen, centerX, centerY - radius * 0.5, radius * 0.7, 1, "red")
+        arrow2 = self.draw_arrow(screen, centerX, centerY, radius * 0.7, 1, "red")
+        arrow3 = self.draw_arrow(screen, centerX, centerY + radius * 0.5, radius * 0.7, 1, "red")
+
+        return [circle_base, arrow1, arrow2, arrow3]
+
 
 
 
@@ -301,13 +495,89 @@ class Tank:
             self.fuel = ceil(self.fuel * 1.5)
             self.full_fuel = self.fuel
             self.speed = ceil(self.speed * 1.5)
-            self.rotate_speed = ceil(self.rotate_speed * 1.5)
+            self.rotate_speed = ceil(self.speed * 1.5)
 
 
         elif self.special_technique == 8:
 
             self.technique_name = "Gatlin"
             self.attack_interval /= 4
+
+
+
+    def display_technique_icon(self, screen):
+
+        parameters1 = [40, 60, 35]
+        parameters2 = [self.WIDTH - 40, self.HEIGHT - 60, 35]
+
+        if self.id == 1:
+
+            if self.special_technique == 1:
+
+                self.methods.draw_range_icon(screen, *parameters1)
+
+            elif self.special_technique == 2:
+
+                self.methods.draw_explosion_icon(screen, *parameters1)
+
+            elif self.special_technique == 3:
+
+                self.methods.draw_eye(screen, 40, 60, 20)
+
+            elif self.special_technique == 4:
+
+                self.methods.draw_resource_icon(screen, *parameters1)
+
+            elif self.special_technique == 5:
+
+                self.methods.draw_shield(screen, 30, 40, 35)
+
+            elif self.special_technique == 6:
+
+                self.methods.draw_sport_icon(screen, *parameters1, "purple")
+
+            elif self.special_technique == 7:
+
+                self.methods.draw_heal_icon(screen, *parameters1)
+
+            elif self.special_technique == 8:
+
+                self.methods.draw_gatlin_icon(screen, *parameters1)
+
+
+        else:
+
+            if self.special_technique == 1:
+
+                self.methods.draw_range_icon(screen, *parameters2)
+
+            elif self.special_technique == 2:
+
+                self.methods.draw_explosion_icon(screen, *parameters2)
+
+            elif self.special_technique == 3:
+
+                self.methods.draw_eye(screen, self.WIDTH - 40, self.HEIGHT - 60, 20)
+
+            elif self.special_technique == 4:
+
+                self.methods.draw_resource_icon(screen, *parameters2)
+
+            elif self.special_technique == 5:
+
+                self.methods.draw_shield(screen, self.WIDTH - 50, self.HEIGHT - 80, 35)
+
+            elif self.special_technique == 6:
+
+                self.methods.draw_sport_icon(screen, *parameters2, "purple")
+
+            elif self.special_technique == 7:
+
+                self.methods.draw_heal_icon(screen, *parameters2)
+
+            elif self.special_technique == 8:
+
+                self.methods.draw_gatlin_icon(screen, *parameters2)
 
 
 
@@ -329,7 +599,7 @@ class Tank:
 
             self.ammunitions_text = screen.create_text(500, 25, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 10", fill = self.color1)
 
-            self.technique_text = screen.create_text(120, 50, text = self.technique_name, font = "Arial 12", fill = "tomato")
+            self.technique_text = screen.create_text(130, 55, text = self.technique_name, font = "Arial 12", fill = "tomato")
 
 
 
@@ -348,7 +618,7 @@ class Tank:
 
             self.ammunitions_text = screen.create_text(self.WIDTH - 500, self.HEIGHT - 25, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 10", fill = self.color1)
 
-            self.technique_text = screen.create_text(self.WIDTH - 120, self.HEIGHT - 50, text = self.technique_name, font = "Arial 12", fill = "tomato")
+            self.technique_text = screen.create_text(self.WIDTH - 130, self.HEIGHT - 55, text = self.technique_name, font = "Arial 12", fill = "tomato")
 
 
 
@@ -1094,7 +1364,10 @@ class Game:
 
         self.game_bindings()
         self.setTanks()
+
         self.draw_walls()
+        self.tank1.display_technique_icon(self.game_screen)
+        self.tank2.display_technique_icon(self.game_screen)
 
 
         f = 0
