@@ -1212,6 +1212,7 @@ class Game:
         if not self.game_running:
             self.game_screen.delete(self.welcome_text)
             self.rules_button.destroy()
+            self.operations_button.destroy()
             self.special_techniques_button.destroy()
             self.player_turn = 1
             self.technique_selection()
