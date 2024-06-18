@@ -1043,7 +1043,7 @@ class Game:
         
         self.operations1 = [
             
-            "PLayer 1",
+            "Player 1",
             "W - Go forward",
             "S - Go back",
             "A - Rotate counterclockwise",
@@ -1054,7 +1054,7 @@ class Game:
             
         self.operations2 = [
             
-            "PLayer 2",
+            "Player 2",
             "Up - Go forward",
             "Down - Go back",
             "Left - Rotate counterclockwise",
@@ -1135,12 +1135,12 @@ class Game:
     def show_rules(self):
 
         self.game_screen.delete("all")
-        self.game_screen.create_text(self.WIDTH/2, 25, text="Rules", font="Arial 16")
+        self.game_screen.create_text(self.WIDTH/2, 25, text="Rules", font = "Arial 16 bold")
 
 
         for i in range(len(self.rules_descriptions)):
 
-            self.game_screen.create_text(self.WIDTH/2, 50 + i * 40, text = self.rules_descriptions[i], font = "Arial 11")
+            self.game_screen.create_text(self.WIDTH/2, 70 + i * 40, text = self.rules_descriptions[i], font = "Arial 11")
 
 
         self.back_button = Button(self.game_screen, text="Back", command=self.back_to_homescreen)
@@ -1169,7 +1169,7 @@ class Game:
     def show_techniques(self):
 
         self.game_screen.delete("all")
-        self.game_screen.create_text(self.WIDTH/2, 25, text="Special Techniques", font="Arial 16")
+        self.game_screen.create_text(self.WIDTH/2, 25, text="Special Techniques", font="Arial 16 bold")
 
 
         for i in range(1, 9):
@@ -1210,7 +1210,8 @@ class Game:
     def startGame(self, event):
 
         if not self.game_running:
-            self.game_screen.delete(self.welcome_text)
+
+            self.game_screen.delete("all")
             self.rules_button.destroy()
             self.operations_button.destroy()
             self.special_techniques_button.destroy()
