@@ -65,6 +65,19 @@ class General_Methods:
 
     # DRAW
 
+    def draw_line_viaAngle(self, screen, startX, startY, angle, length, width, color):
+        
+        angle = radians(self.to_principal(angle)) # Turn it to radians to use the trig functions
+
+        # calculate the end point coordinates
+        endX = startX + length * cos(angle)
+        endY = startY - length * sin(angle)
+        line = screen.create_line(startX, startY, endX, endY, fill = color, width = width)
+
+        return line
+
+
+
     def draw_oval(self, screen, centerX, centerY, hori_radius, vert_radius, fcol, ocol, width = 1):
 
         x1 = centerX - hori_radius
@@ -276,6 +289,52 @@ class General_Methods:
 
 
 
+    def draw_captain_america(self, screen, centerX, centerY, diameter):
+
+        radii = [diameter * (i/10) for i in range(5, 1, -1)]
+
+        colors = ["red", "white", "red", "#0c4e80"]
+
+        circles = [self.draw_circle(screen, centerX, centerY, radii[i], colors[i], colors[i]) for i in range(4)]
+
+        star = self.draw_spikes(screen, centerX, centerY, 2 * radii[3], "white", 5)
+
+
+
+    def fire_work_animation(self, screen, centerX, centerY, option, radius):
+
+        # Color palettes
+        palettes = [
+        ["#F0EA65", "#0EF028", "#CBF065", "#F0D965", "#65F070"],
+        ["#8D65F0", "#E865F0", "#BA65F0", "#656AF0", "#F065AB"]
+        ]
+
+        fps = 144
+        number = 400
+
+        pieces = [0 for _ in range(number)]
+        colors = [choice(palettes[option - 1]) for _ in range(number)]
+        angles = [uniform(-180, 180) for _ in range(number)]
+        
+        x_values = [centerX for _ in range(number)]
+        y_values = [centerY for _ in range(number)]
+        speeds = [uniform(0.2, radius//150) for _ in range(number)]
+        xSpeeds = [speeds[i] * cos(radians(angles[i])) for i in range(number)]
+        ySpeeds = [-1 * speeds[i] * sin(radians(angles[i])) for i in range(number)]
+
+        for f in range(fps * 2):
+            for i in range(number):
+                # Assuming self.draw_line_viaAngle is correctly defined
+                pieces[i] = self.draw_line_viaAngle(screen, x_values[i], y_values[i], angles[i], radius/40, radius/80, colors[i])
+                x_values[i] += xSpeeds[i]
+                y_values[i] += ySpeeds[i]
+
+            screen.update()
+            sleep(1 / fps)
+            # Assuming screen.delete is correctly defined and can take a list of items to delete
+            screen.delete(*pieces)
+
+
 
 
 class Ammunition:
@@ -485,7 +544,9 @@ class Tank:
 
         elif self.special_technique == 5:
 
-            self.speed /= 2
+            self.speed //= 2
+            self.fuel //= 2
+            self.full_fuel = self.fuel
 
 
         elif self.special_technique == 6:
@@ -499,7 +560,7 @@ class Tank:
         elif self.special_technique == 8:
 
             self.technique_name = "Gatlin"
-            self.attack_interval /= 4
+            self.attack_interval /= 2
 
 
 
@@ -597,7 +658,7 @@ class Tank:
 
             self.ammunitions_text = screen.create_text(500, 25, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 10", fill = self.color1)
 
-            self.technique_text = screen.create_text(130, 55, text = self.technique_name, font = "Arial 12", fill = "tomato")
+            self.technique_text = screen.create_text(150, 55, text = self.technique_name, font = "Arial 12 bold", fill = "tomato")
 
 
 
@@ -616,7 +677,7 @@ class Tank:
 
             self.ammunitions_text = screen.create_text(self.WIDTH - 500, self.HEIGHT - 25, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 10", fill = self.color1)
 
-            self.technique_text = screen.create_text(self.WIDTH - 130, self.HEIGHT - 55, text = self.technique_name, font = "Arial 12", fill = "tomato")
+            self.technique_text = screen.create_text(self.WIDTH - 150, self.HEIGHT - 55, text = self.technique_name, font = "Arial 12 bold", fill = "tomato")
 
 
 
@@ -882,7 +943,7 @@ class Tank:
 
                 if self.check_shoot_success():
 
-                    hurt = self.hurt if self.enemy.special_technique != 5 else floor(self.hurt/2)
+                    hurt = self.hurt if self.enemy.special_technique != 5 else floor(self.hurt * 2/3)
                     
                     if self.enemy.live_points - hurt <= 0:
                         self.enemy.live_points = 0
@@ -967,7 +1028,7 @@ class Game:
         self.HEIGHT = round((4/5) * self.WIDTH / 50) * 50
         self.LEFT_WALL, self.RIGHT_WALL = 80, self.WIDTH - 80
         self.UP_WALL, self.DOWN_WALL = 80, self.HEIGHT - 80
-        self.BACKGROUND_COL = "white"
+        self.BACKGROUND_COL = "#FAF0DC"
         self.FPS = 144
         self.screen_widths = {
 
@@ -1020,7 +1081,7 @@ class Game:
             2 : "Greater shoot hurt, but fewer ammunitions",
             3 : "The tank aims the opponent for you, but slower speed and shorter shoot range",
             4 : "10 more ammunitions",
-            5 : "Only half hurt when being hit, but also half speed",
+            5 : "Less than 70 % hurt when being hit, but also half speed",
             6 : "Greater speed, fuel, and rotating speed -> More flexible",
             7 : "Recover live points when you move",
             8 : "Greater shooting frequency possible"
@@ -1092,7 +1153,7 @@ class Game:
 
     def show_screensize_select(self):
         
-        self.menu_screen = Canvas(self.myInterface, width = 300, height = 300, bg = "white")
+        self.menu_screen = Canvas(self.myInterface, width = 300, height = 300, bg = self.BACKGROUND_COL)
         self.menu_screen.pack()
 
         self.menu_screen.create_text(150, 25, text = "Please choose your computer type", font = "Arial 10")
@@ -1369,6 +1430,10 @@ class Game:
         self.tank1.draw_display_panels(self.game_screen)
         self.tank2.draw_display_panels(self.game_screen)
 
+        if self.checkEndGame() > 0 and self.checkEndGame() < 3:
+
+            self.methods.fire_work_animation(self.game_screen, self.WIDTH/2, self.HEIGHT/2, self.checkEndGame(), (self.WIDTH - 160)/2)
+
         endgame_text = self.endgame_texts[self.checkEndGame()]
 
         self.game_screen.create_text(*text_positions, text = endgame_text, font = "Arial 20")
@@ -1386,9 +1451,20 @@ class Game:
     
     def draw_walls(self):
 
-        self.game_screen.create_rectangle(self.LEFT_WALL, self.UP_WALL, self.RIGHT_WALL, self.DOWN_WALL, fill = "", width = 5)
+        self.game_screen.create_rectangle(self.LEFT_WALL, self.UP_WALL, self.RIGHT_WALL, self.DOWN_WALL, fill = "#F5DEB3", width = 5)
 
 
+
+    def draw_background(self):
+
+        y = self.UP_WALL + 30
+
+        while y < self.DOWN_WALL:
+
+            self.methods.draw_captain_america(self.game_screen, 40, y, 35)
+            self.methods.draw_captain_america(self.game_screen, self.WIDTH - 40, y, 35)
+
+            y += 40
 
 
     # GENERAL RUNNINGS
@@ -1412,6 +1488,7 @@ class Game:
         self.setTanks()
 
         self.draw_walls()
+        self.draw_background()
         self.tank1.display_technique_icon(self.game_screen)
         self.tank2.display_technique_icon(self.game_screen)
 
