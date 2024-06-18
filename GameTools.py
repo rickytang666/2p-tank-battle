@@ -322,7 +322,7 @@ class General_Methods:
         xSpeeds = [speeds[i] * cos(radians(angles[i])) for i in range(number)]
         ySpeeds = [-1 * speeds[i] * sin(radians(angles[i])) for i in range(number)]
 
-        for f in range(fps * 2):
+        for f in range(fps ):
             for i in range(number):
                 # Assuming self.draw_line_viaAngle is correctly defined
                 pieces[i] = self.draw_line_viaAngle(screen, x_values[i], y_values[i], angles[i], radius/40, radius/80, colors[i])
@@ -1459,7 +1459,7 @@ class Game:
 
         y = self.UP_WALL + 30
 
-        while y < self.DOWN_WALL:
+        while y < self.DOWN_WALL - 30:
 
             self.methods.draw_captain_america(self.game_screen, 40, y, 35)
             self.methods.draw_captain_america(self.game_screen, self.WIDTH - 40, y, 35)
