@@ -1040,6 +1040,28 @@ class Game:
             "One (or none) special technique can be chosen by each player."
 
         ]
+        
+        self.operations1 = [
+            
+            "PLayer 1",
+            "W - Go forward",
+            "S - Go back",
+            "A - Rotate counterclockwise",
+            "D - Rotate clockwise",
+            "G - Attack"
+            
+            ]
+            
+        self.operations2 = [
+            
+            "PLayer 2",
+            "Up - Go forward",
+            "Down - Go back",
+            "Left - Rotate counterclockwise",
+            "Right - Rotate clockwise",
+            "M - Attack"
+            
+            ]
 
 
         self.player_turn = 1
@@ -1123,8 +1145,26 @@ class Game:
 
         self.back_button = Button(self.game_screen, text="Back", command=self.back_to_homescreen)
         self.game_screen.create_window(self.WIDTH - 50, self.HEIGHT - 50, window=self.back_button)
+        
+        
+        
+    def show_operations(self):
+        
+        self.game_screen.delete("all")
+        self.game_screen.create_text(self.WIDTH/2, 25, text="Operations", font="Arial 16 bold")
+        
+        for i in range(len(self.operations1)):
+            
+            font = "Arial 13 bold" if i == 0 else "Arial 11" 
+            
+            self.game_screen.create_text(self.WIDTH/4, 70 + i * 40, text = self.operations1[i], font = font)
+            self.game_screen.create_text(self.WIDTH * 3/4, 70 + i * 40, text = self.operations2[i], font = font)
 
+            
+        self.back_button = Button(self.game_screen, text="Back", command=self.back_to_homescreen)
+        self.game_screen.create_window(self.WIDTH - 50, self.HEIGHT - 50, window=self.back_button)
 
+    
 
     def show_techniques(self):
 
@@ -1150,11 +1190,17 @@ class Game:
 
 
     def startApplication(self):
-        self.welcome_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text="Welcome! (Press space to start, Press Esc to quit)", font="Arial 16")
+        self.welcome_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text="Welcome! (Press space to start, Press Esc to quit)", font="Arial 16 bold")
+        
         self.rules_button = Button(self.game_screen, text="Rules", command=self.show_rules)
-        self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 100, window=self.rules_button)
+        self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 150, window=self.rules_button)
+        
+        self.operations_button = Button(self.game_screen, text="Operations", command=self.show_operations)
+        self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 100, window=self.operations_button)
+        
         self.special_techniques_button = Button(self.game_screen, text="Special Techniques", command=self.show_techniques)
         self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 50, window=self.special_techniques_button)
+        
         self.game_screen.bind('<space>', self.startGame)
         self.game_screen.bind('<Escape>', self.quitGame)
         self.game_screen.focus_set()
