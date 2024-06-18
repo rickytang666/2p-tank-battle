@@ -143,7 +143,7 @@ class General_Methods:
     
 
     
-    def draw_explosion(self, screen, centerX, centerY, diameter, color):
+    def draw_spikes(self, screen, centerX, centerY, diameter, color, spikes_num = 10):
 
         # Calculate the radius
 
@@ -152,8 +152,6 @@ class General_Methods:
         # Calculate the points for the outer and inner polygons
 
         points = []
-
-        spikes_num = 10
 
         for i in range(spikes_num):  # Number of spikes
 
@@ -186,9 +184,9 @@ class General_Methods:
 
     def draw_explosion_icon(self, screen, centerX, centerY, diameter):
 
-        outer_part = self.draw_explosion(screen, centerX, centerY, diameter, "tomato")
+        outer_part = self.draw_spikes(screen, centerX, centerY, diameter, "tomato")
 
-        inner_part = self.draw_explosion(screen, centerX, centerY, diameter * 0.6, "orange")
+        inner_part = self.draw_spikes(screen, centerX, centerY, diameter * 0.6, "orange")
 
         return [outer_part, inner_part]
     
