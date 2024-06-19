@@ -1167,7 +1167,7 @@ class Game:
             y += 50  # Adjust y-coordinate for next button
 
 
-        game.menu_screen.mainloop()
+        self.menu_screen.mainloop()
 
 
     
@@ -1253,9 +1253,9 @@ class Game:
 
     def startApplication(self):
 
-        self.game_screen.create_text(self.WIDTH * 0.35, self.HEIGHT * 0.3, text="TANK", fill = "dodger blue", font="Arial 35 bold")
-        self.game_screen.create_text(self.WIDTH * 0.65, self.HEIGHT * 0.3, text="BATTLE", fill = "forest green", font="Arial 35 bold")
-        self.game_screen.create_text(self.WIDTH * 0.5, self.HEIGHT * 0.55, text="(Press space to play game, press Esc to quit)", font="Arial 16")  
+        self.game_screen.create_text(self.WIDTH/2 - 100, self.HEIGHT * 0.3, text="TANK", fill = "dodger blue", font="Arial 35 bold")
+        self.game_screen.create_text(self.WIDTH/2 + 100, self.HEIGHT * 0.3, text="BATTLE", fill = "forest green", font="Arial 35 bold")
+        self.game_screen.create_text(self.WIDTH/2, self.HEIGHT * 0.55, text="(Press space to play game, press Esc to quit)", font="Arial 16")  
         
         self.rules_button = Button(self.game_screen, text="Rules", command=self.show_rules)
         self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 150, window=self.rules_button)
@@ -1549,8 +1549,3 @@ class Game:
 
 #####################################################################
 
-# FOR TESTING
-
-game = Game()
-
-game.runApplication()
