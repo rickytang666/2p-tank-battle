@@ -20,17 +20,24 @@ class General_Methods:
     # MATH
 
     def ConvertAngle(self, angle):
+
+        # This is for converting the angle between math coordinate system and tkinter coordinate system (mutual)
+        
         return (450 - angle) % 360
 
 
 
     def to_principal(self, angle):
 
+        # Convert any arbitary angle to principle angle to help calculating and expressing
+        
         return (angle + 180) % 360 - 180
 
 
 
     def calculate_distance(self, x1, y1, x2, y2):
+
+        # distance between 2 points
         
         return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
@@ -38,23 +45,30 @@ class General_Methods:
 
     def rotate_point(self, centerX, centerY, pointX, pointY, angle):
 
+        # This is for rotating a point around a center point to some angle
+
         # Adjust the angle to follow the mathematical convention
+        
         angle = 90 - angle
         if angle < 0:
             angle += 360
 
-        # Convert the angle to radians
+        # Convert the angle to radians to use trig
+        
         angle = radians(angle)
 
         # Translate the point to the origin
+        
         tempX = pointX - centerX
         tempY = pointY - centerY
 
         # Perform the rotation
+        
         rotatedX = tempX * cos(angle) - tempY * sin(angle)
         rotatedY = tempX * sin(angle) + tempY * cos(angle)
 
         # Translate the point back to the original location
+        
         finalX = rotatedX + centerX
         finalY = rotatedY + centerY
 
@@ -66,6 +80,8 @@ class General_Methods:
     # DRAW
 
     def draw_line_viaAngle(self, screen, startX, startY, angle, length, width, color):
+
+        # Draw the line via a certain angle
         
         angle = radians(self.to_principal(angle)) # Turn it to radians to use the trig functions
 
@@ -80,6 +96,8 @@ class General_Methods:
 
     def draw_oval(self, screen, centerX, centerY, hori_radius, vert_radius, fcol, ocol, width = 1):
 
+        # This function only needs the center point, and the 2 neccessary radii
+
         x1 = centerX - hori_radius
         x2 = centerX + hori_radius
         y1 = centerY - vert_radius
@@ -90,6 +108,8 @@ class General_Methods:
 
 
     def draw_circle(self, screen, centerX, centerY, radius, fcol, ocol, width = 1):
+
+        # Drawing the circle via the center point
         
         return self.draw_oval(screen, centerX, centerY, radius, radius, fcol, ocol, width)
     
@@ -97,6 +117,7 @@ class General_Methods:
 
     def draw_rectangle(self, screen, centerX, centerY, length, width, fcol, ocol, stroke = 1):
 
+        # draw the rectangle via the center point, length, and width
 
         hori_radius = length/2
         vert_radius = width/2
@@ -111,16 +132,22 @@ class General_Methods:
 
     def draw_square(self, screen, centerX, centerY, side_length, fcol, ocol, stroke = 1):
 
+        # draw the square via the center point
+
         return self.draw_rectangle(screen, centerX, centerY, side_length, side_length, fcol, ocol, stroke)
     
 
 
     def draw_arrow(self, screen, centerX, centerY, length, direction, color):
 
+        # Draw a horizontal arrow (consists of tail and head)
+
         width = length/4
 
         tail = self.draw_rectangle(screen, centerX - direction * width, centerY, length, width, color, color)
 
+        # pre-calculate the coordinates for the triangle (the head)
+        
         coordinates = [centerX + direction * width, centerY - width,
                        centerX + direction * width * 3, centerY,
                        centerX + direction * width, centerY + width]
@@ -132,12 +159,15 @@ class General_Methods:
 
 
     def draw_rotated_rectangle(self, screen, centerX, centerY, length, width, angle, col):
-        # Calculate the corners of the rectangle
+        
+        # Calculate the 4 corners of the rectangle
+        
         corners = []
 
         for dx, dy in [(-length / 2, -width / 2), (-length / 2, width / 2), (length / 2, width / 2), (length / 2, -width / 2)]:
+            
             dx_rot = dx * cos(radians(angle)) + dy * sin(radians(angle))
-            dy_rot = -dx * sin(radians(angle)) + dy * cos(radians(angle))  # Subtract instead of add
+            dy_rot = -dx * sin(radians(angle)) + dy * cos(radians(angle))  # Subtract instead of add because of the tkinter coordinates system
             corners.append((centerX + dx_rot, centerY + dy_rot))
 
         return screen.create_polygon(*corners, fill=col, outline=col)
@@ -145,6 +175,8 @@ class General_Methods:
 
 
     def draw_eye(self, screen, centerX, centerY, eyeball_width):
+
+        # an outer empty oval surrounding the inside circle
 
         radius = eyeball_width/2
 
