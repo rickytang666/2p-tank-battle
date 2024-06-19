@@ -322,7 +322,7 @@ class General_Methods:
         xSpeeds = [speeds[i] * cos(radians(angles[i])) for i in range(number)]
         ySpeeds = [-1 * speeds[i] * sin(radians(angles[i])) for i in range(number)]
 
-        for f in range(fps ):
+        for f in range(fps):
             for i in range(number):
                 # Assuming self.draw_line_viaAngle is correctly defined
                 pieces[i] = self.draw_line_viaAngle(screen, x_values[i], y_values[i], angles[i], radius/40, radius/80, colors[i])
@@ -333,6 +333,8 @@ class General_Methods:
             sleep(1 / fps)
             # Assuming screen.delete is correctly defined and can take a list of items to delete
             screen.delete(*pieces)
+
+
 
 
 
@@ -653,10 +655,10 @@ class Tank:
             self.live_display = screen.create_text(200, 25, text = str(self.live_points), font = "Arial 10", fill = self.color1)
 
             self.fuel_text = screen.create_text(280, 25, text = str(self.fuel) + " mL fuel", font = "Arial 10", fill = self.color1)
-            self.fuel_box = screen.create_rectangle(330, 15, 430, 30, fill = "", outline = "black", width = 3)
-            self.fuel_bar = screen.create_rectangle(330, 15, 330 + fuel_length, 30, fill = self.color2)
+            self.fuel_box = screen.create_rectangle(340, 15, 440, 30, fill = "", outline = "black", width = 3)
+            self.fuel_bar = screen.create_rectangle(340, 15, 340 + fuel_length, 30, fill = self.color2)
 
-            self.ammunitions_text = screen.create_text(500, 25, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 10", fill = self.color1)
+            self.ammunitions_text = screen.create_text(520, 25, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 10", fill = self.color1)
 
             self.technique_text = screen.create_text(150, 55, text = self.technique_name, font = "Arial 12 bold", fill = "tomato")
 
@@ -672,10 +674,10 @@ class Tank:
             self.live_display = screen.create_text(self.WIDTH - 200, self.HEIGHT - 25, text = str(self.live_points), font = "Arial 10", fill = self.color1)
 
             self.fuel_text = screen.create_text(self.WIDTH - 280, self.HEIGHT - 25, text = str(self.fuel) + " mL fuel", font = "Arial 10", fill = self.color1)
-            self.fuel_box = screen.create_rectangle(self.WIDTH - 430, self.HEIGHT - 30, self.WIDTH - 330, self.HEIGHT - 15, fill = "", outline = "black", width = 3)
-            self.fuel_bar = screen.create_rectangle(self.WIDTH - 430, self.HEIGHT - 30, self.WIDTH - 430 + fuel_length, self.HEIGHT - 15, fill = self.color2)
+            self.fuel_box = screen.create_rectangle(self.WIDTH - 440, self.HEIGHT - 30, self.WIDTH - 340, self.HEIGHT - 15, fill = "", outline = "black", width = 3)
+            self.fuel_bar = screen.create_rectangle(self.WIDTH - 440, self.HEIGHT - 30, self.WIDTH - 440 + fuel_length, self.HEIGHT - 15, fill = self.color2)
 
-            self.ammunitions_text = screen.create_text(self.WIDTH - 500, self.HEIGHT - 25, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 10", fill = self.color1)
+            self.ammunitions_text = screen.create_text(self.WIDTH - 520, self.HEIGHT - 25, text = "Ammunitions: " + str(self.ammunitions_num), font = "Arial 10", fill = self.color1)
 
             self.technique_text = screen.create_text(self.WIDTH - 150, self.HEIGHT - 55, text = self.technique_name, font = "Arial 12 bold", fill = "tomato")
 
@@ -1096,7 +1098,8 @@ class Game:
             "Fuel is consumed by moving (1 mL/pixel), shooting, and time (1 mL/second).",
             "The normal shooting range is 1/4 of the screen.",
             "Normal tanks lose 6 points per hit and 1 point every 1.5 seconds when colliding.",
-            "One (or none) special technique can be chosen by each player."
+            "One (or none) special technique can be chosen by each player.",
+            "*The Captain America Shields are simply for asthetics (No actual impacts)"
 
         ]
         
@@ -1249,7 +1252,10 @@ class Game:
 
 
     def startApplication(self):
-        self.welcome_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text="Welcome! (Press space to start, Press Esc to quit)", font="Arial 16 bold")
+
+        self.game_screen.create_text(self.WIDTH * 0.35, self.HEIGHT * 0.3, text="TANK", fill = "dodger blue", font="Arial 35 bold")
+        self.game_screen.create_text(self.WIDTH * 0.65, self.HEIGHT * 0.3, text="BATTLE", fill = "forest green", font="Arial 35 bold")
+        self.game_screen.create_text(self.WIDTH * 0.5, self.HEIGHT * 0.55, text="(Press space to play game, press Esc to quit)", font="Arial 16")  
         
         self.rules_button = Button(self.game_screen, text="Rules", command=self.show_rules)
         self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 150, window=self.rules_button)
@@ -1291,7 +1297,8 @@ class Game:
 
         # Add instructions for the players
         player_name = "First" if self.player_turn == 1 else "Second"
-        self.select_instructions = self.game_screen.create_text(self.WIDTH/2, 25, text=f"{player_name} player, please choose technique", font="Arial 12")
+        color = "dodger blue" if self.player_turn == 1 else "forest green"
+        self.select_instructions = self.game_screen.create_text(self.WIDTH/2, 25, text=f"{player_name} player, please choose technique", fill = color, font="Arial 12 bold")
 
 
 
@@ -1436,7 +1443,7 @@ class Game:
 
         endgame_text = self.endgame_texts[self.checkEndGame()]
 
-        self.game_screen.create_text(*text_positions, text = endgame_text, font = "Arial 20")
+        self.game_screen.create_text(*text_positions, text = endgame_text, font = "Arial 20 bold")
 
         self.hint_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2 + 50, text="(Press space to return to homepage, Press Esc to quit)", font = "Arial 12")
         self.game_screen.bind('<space>', self.replayGame)
@@ -1472,6 +1479,15 @@ class Game:
 
 
     def quitGame(self, event):
+
+        self.game_screen.delete("all")
+
+        self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text = "It's so sad to say goodbye", font = "Arial 30 bold", fill = "tomato")
+        self.game_screen.create_text(self.WIDTH/2, self.HEIGHT * 0.7, text = "See you in the next battle!", font = "Arial 20 bold", fill = "orange")
+
+        self.game_screen.update()
+        sleep(3)
+
         self.myInterface.quit()
 
 
