@@ -1169,6 +1169,10 @@ class Game:
 
         }
 
+        self.button_fg = "yellow"
+        self.button_bg = "brown4"
+        self.active_bg = "hot pink"
+
 
 
     # SCREENSIZE SELECTIONS
@@ -1191,9 +1195,10 @@ class Game:
         self.menu_screen = Canvas(self.myInterface, width = 300, height = 300, bg = self.BACKGROUND_COL)
         self.menu_screen.pack()
 
-        self.menu_screen.create_text(150, 25, text = "Please choose your computer type", font = "Arial 10")
+        self.menu_screen.create_text(150, 25, text = "Welcome!", font = "Arial 12 bold italic")
+        self.menu_screen.create_text(150, 50, text = "Please choose your computer type", font = "Arial 10")
 
-        x, y = 200, 75
+        x, y = 150, 85
         for key, value in self.screen_widths.items():
             self.create_button(key, value, x, y)
             y += 50  # Adjust y-coordinate for next button
@@ -1217,8 +1222,8 @@ class Game:
 
     def create_button(self, key, value, x, y):
         
-        button = Button(self.menu_screen, text = key, command = lambda : self.on_screensize_click(value))
-        self.menu_screen.create_window(x, y, window = button, anchor = E)
+        button = Button(self.menu_screen, text = key, font = "Arial 9 bold", fg=self.button_fg, bg=self.button_bg, activebackground=self.active_bg, command = lambda : self.on_screensize_click(value))
+        self.menu_screen.create_window(x, y, window = button)
 
 
 
@@ -1234,14 +1239,14 @@ class Game:
 
         for i in range(len(self.rules_descriptions)):
 
-            self.game_screen.create_text(self.WIDTH/2, 70 + i * 40, text = self.rules_descriptions[i], font = "Arial 11")
+            self.game_screen.create_text(40, 70 + i * 40, text = self.rules_descriptions[i], font = "Arial 11", anchor = W)
 
 
-        self.back_button = Button(self.game_screen, text="Back", command=self.back_to_homescreen)
+        self.back_button = Button(self.game_screen, text="Back", font = "Arial 10 bold", fg=self.button_fg, bg=self.button_bg, activebackground=self.active_bg, command=self.back_to_homescreen)
         self.game_screen.create_window(self.WIDTH - 50, self.HEIGHT - 50, window=self.back_button)
         
         
-        
+    
     def show_operations(self):
         
         self.game_screen.delete("all")
@@ -1254,8 +1259,7 @@ class Game:
             self.game_screen.create_text(self.WIDTH/4, 70 + i * 40, text = self.operations1[i], font = font)
             self.game_screen.create_text(self.WIDTH * 3/4, 70 + i * 40, text = self.operations2[i], font = font)
 
-            
-        self.back_button = Button(self.game_screen, text="Back", command=self.back_to_homescreen)
+        self.back_button = Button(self.game_screen, text="Back", font = "Arial 10 bold", fg=self.button_fg, bg=self.button_bg, activebackground=self.active_bg, command=self.back_to_homescreen)
         self.game_screen.create_window(self.WIDTH - 50, self.HEIGHT - 50, window=self.back_button)
 
     
@@ -1272,7 +1276,7 @@ class Game:
             self.game_screen.create_text(self.WIDTH/2, 38 + i * 50, text = self.technique_descriptions[i], font = "Arial 10", fill = "blue")
 
 
-        self.back_button = Button(self.game_screen, text="Back", command=self.back_to_homescreen)
+        self.back_button = Button(self.game_screen, text="Back", font = "Arial 10 bold", fg=self.button_fg, bg=self.button_bg, activebackground=self.active_bg, command=self.back_to_homescreen)
         self.game_screen.create_window(self.WIDTH - 50, self.HEIGHT - 50, window=self.back_button)
 
 
@@ -1285,17 +1289,17 @@ class Game:
 
     def startApplication(self):
 
-        self.game_screen.create_text(self.WIDTH/2 - 100, self.HEIGHT * 0.3, text="TANK", fill = "dodger blue", font="Arial 35 bold")
-        self.game_screen.create_text(self.WIDTH/2 + 100, self.HEIGHT * 0.3, text="BATTLE", fill = "forest green", font="Arial 35 bold")
-        self.game_screen.create_text(self.WIDTH/2, self.HEIGHT * 0.55, text="(Press space to play game, press Esc to quit)", font="Arial 16")  
+        self.game_screen.create_text(self.WIDTH/2 - 145, self.HEIGHT * 0.3, text="TANK", fill = "dodger blue", font="Arial 50 bold")
+        self.game_screen.create_text(self.WIDTH/2 + 145, self.HEIGHT * 0.3, text="BATTLE", fill = "forest green", font="Arial 50 bold")
+        self.game_screen.create_text(self.WIDTH/2, self.HEIGHT * 0.55, text="(Press space to play game, press Esc to quit)", font="Arial 16 italic")  
         
-        self.rules_button = Button(self.game_screen, text="Rules", command=self.show_rules)
+        self.rules_button = Button(self.game_screen, text="Rules", font = "Arial 12 bold", fg=self.button_fg, bg=self.button_bg, activebackground=self.active_bg, command=self.show_rules)
         self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 150, window=self.rules_button)
         
-        self.operations_button = Button(self.game_screen, text="Operations", command=self.show_operations)
+        self.operations_button = Button(self.game_screen, text="Operations", font = "Arial 12 bold", fg=self.button_fg, bg=self.button_bg, activebackground=self.active_bg, command=self.show_operations)
         self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 100, window=self.operations_button)
         
-        self.special_techniques_button = Button(self.game_screen, text="Special Techniques", command=self.show_techniques)
+        self.special_techniques_button = Button(self.game_screen, text="Special Techniques", font = "Arial 12 bold", fg=self.button_fg, bg=self.button_bg, activebackground=self.active_bg, command=self.show_techniques)
         self.game_screen.create_window(self.WIDTH/2, self.HEIGHT - 50, window=self.special_techniques_button)
         
         self.game_screen.bind('<space>', self.startGame)
@@ -1323,9 +1327,12 @@ class Game:
 
         for i in range(9):
 
-            button = Button(self.game_screen, text=str(self.technique_names[i]), command=lambda i=i: self.on_technique_click(i))
+            font = "Arial 11 bold italic" if i == 0 else "Arial 11 bold"
+            fg = "red3" if i == 0 else "medium blue"
+
+            button = Button(self.game_screen, text=str(self.technique_names[i]), font = font, fg = fg, bg="light salmon", activebackground="maroon1", command=lambda i=i: self.on_technique_click(i))
             self.technique_buttons.append(button)
-            self.game_screen.create_window(300, 75 + i * 35, window = button)
+            self.game_screen.create_window(300, 75 + i * 45, window = button)
 
         # Add instructions for the players
         player_name = "First" if self.player_turn == 1 else "Second"
@@ -1581,3 +1588,6 @@ class Game:
 
 #####################################################################
 
+game = Game()
+
+game.runApplication()
