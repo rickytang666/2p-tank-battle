@@ -680,7 +680,7 @@ class Tank:
             self.fuel = round(self.fuel * 1.5)
             self.fuel_capacity = self.fuel
             self.speed = round(self.speed * 1.5)
-            self.rotate_speed = round(self.speed * 1.5)
+            self.rotate_speed = round(self.rotate_speed * 2)
 
 
         elif self.special_technique == 8:
@@ -1264,27 +1264,28 @@ class Game:
 
         self.technique_descriptions = {
 
-            1 : "Longer shoot range",
-            2 : "Greater shoot hurt, but fewer ammunitions",
-            3 : "The tank aims the opponent for you, but slower speed and shorter shoot range",
+            1 : "1.5x normal shoot range",
+            2 : "1.5x normal shoot hurt, but 5 fewer ammunitions",
+            3 : "The tank aims the opponent for you, but half speed and shorter shoot range",
             4 : "10 more ammunitions",
             5 : "Only 2/3 of hurt when being hit, but also half speed",
-            6 : "Greater speed, fuel, and rotating speed -> More flexible",
-            7 : "Recover live points when you move",
-            8 : "Greater shooting frequency possible"
+            6 : "Greater speed, fuel, and rotating speed -> Better agility and more flexible",
+            7 : "Recover 1 live point per 100 frames when you move",
+            8 : "Double shooting frequency"
 
         }
 
         self.rules_descriptions = [
 
+            "How to win: Shoot the enemy or even collide with it till the enemy's live point is 0!" 
             "Tanks start with 100 live points; reaching 0 means losing.",
-            "A normal tank has 35 ammunitions for shooting.",
-            "Fuel begins at 10,000 mL for a normal tank.",
+            "A basic tank has 35 ammunitions for shooting.",
+            "Fuel begins at 10,000 mL for a basic tank.",
             "Fuel is consumed by moving (1 mL/pixel), shooting, and time (1 mL/second).",
-            "The normal shooting range is 1/4 of the screen.",
-            "Normal tanks lose 6 points per hit and 1 point every 1.5 seconds when colliding.",
-            "One (or none) special technique can be chosen by each player.",
-            "*The Captain America Shields are simply for asthetics (No actual impacts)"
+            "The basic shooting range is approx. 1/5 of screen diagonal.",
+            "Basic tanks lose 6 points per hit and 1 point every 1.5 seconds when colliding.",
+            "One (You can also choose no) special technique can be chosen by each player.",
+            "*The Captain America Shields are simply for desorating (No actual impacts)"
 
         ]
         
@@ -1314,6 +1315,7 @@ class Game:
         self.player_turn = 1 # for the technique selection for each player
 
         # Check if the game is running (prevent the game crashing with the welcome screen)
+
         self.game_running = False
 
         self.endgame_texts = {
@@ -1699,6 +1701,9 @@ class Game:
         self.game_screen.create_text(*text_positions, text = endgame_text, font = "Arial 20 bold")
 
         self.hint_text = self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2 + 50, text="(Press space to return to homepage, Press Esc to quit)", font = "Arial 12 italic")
+        
+        self.game_running = False
+        
         self.game_screen.bind('<space>', self.replayGame)
         self.game_screen.bind('<Escape>', self.quitGame)
         self.game_screen.focus_set()
@@ -1733,20 +1738,22 @@ class Game:
 
     def quitGame(self, event):
 
-        self.game_screen.delete("all")
+        if not self.game_running:
 
-        # Farewell graphics
+            self.game_screen.delete("all")
 
-        self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text = "It's so sad to say goodbye", font = "Arial 30 bold", fill = "tomato")
-        self.game_screen.create_text(self.WIDTH/2, self.HEIGHT * 0.7, text = "See you in the next battle!", font = "Arial 20 bold", fill = "orange")
+            # Farewell graphics
+
+            self.game_screen.create_text(self.WIDTH/2, self.HEIGHT/2, text = "It's so sad to say goodbye", font = "Arial 30 bold", fill = "tomato")
+            self.game_screen.create_text(self.WIDTH/2, self.HEIGHT * 0.7, text = "See you in the next battle!", font = "Arial 20 bold", fill = "orange")
 
 
-        # close the program after 2 seconds
+            # close the program after 2 seconds
 
-        self.game_screen.update()
-        sleep(2)
+            self.game_screen.update()
+            sleep(2)
 
-        self.myInterface.quit()
+            self.myInterface.quit()
 
 
 
@@ -1809,7 +1816,7 @@ class Game:
 
                 # The game is over, not running anymore
 
-                self.game_running = False
+                # self.game_running = False
                 break
 
         # after the game is over, we go through the final part
