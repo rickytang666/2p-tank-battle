@@ -1332,7 +1332,7 @@ class Game:
 
             button = Button(self.game_screen, text=str(self.technique_names[i]), font = font, fg = fg, bg="light salmon", activebackground="maroon1", command=lambda i=i: self.on_technique_click(i))
             self.technique_buttons.append(button)
-            self.game_screen.create_window(300, 75 + i * 45, window = button)
+            self.game_screen.create_window(self.WIDTH/2, 75 + i * 45, window = button)
 
         # Add instructions for the players
         player_name = "First" if self.player_turn == 1 else "Second"
