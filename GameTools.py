@@ -1279,7 +1279,7 @@ class Game:
 
         self.rules_descriptions = [
 
-            "How to win: Shoot the enemy or even collide with it till the enemy's live point is 0!",
+            "How to win: Attack the enemy till its live point is 0!",
             "Tanks start with 100 live points; reaching 0 means losing.",
             "A basic tank has 35 ammunitions for shooting.",
             "Fuel begins at 10,000 mL for a basic tank.",
