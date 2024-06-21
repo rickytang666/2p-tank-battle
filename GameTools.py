@@ -1255,7 +1255,7 @@ class Game:
             0 : "Don't need anything",
             1 : "Long Shooter",
             2 : "Furious Shooter",
-            3 : "Auto-Aiming",
+            3 : "Auto Aiming",
             4 : "Resource God",
             5 : "Juggernaut",
             6 : "Sport Champion",
@@ -1288,7 +1288,7 @@ class Game:
             "At the first 15s, the orange shoot range is displayed to let players know.",
             "Basic tanks lose 6 points per hit and 1 point every 1.5 seconds when colliding.",
             "One (You can also choose no) special technique can be chosen by each player.",
-            "*The Captain America Shields are simply for desorating (No actual impacts)"
+            "*The Captain America Shields are simply for decorating (No actual impacts)"
 
         ]
         
@@ -1418,7 +1418,7 @@ class Game:
         # Create button for going back to the homepage
 
         self.back_button = Button(self.game_screen, text="Back", font = "Arial 10 bold", fg=self.button_fg, bg=self.button_bg, activebackground=self.active_bg, command=self.back_to_homescreen)
-        self.game_screen.create_window(self.WIDTH - 50, self.HEIGHT - 50, window=self.back_button)
+        self.game_screen.create_window(self.WIDTH - 50, self.HEIGHT - 40, window=self.back_button)
         
         
     
