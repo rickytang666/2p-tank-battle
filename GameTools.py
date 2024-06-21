@@ -612,8 +612,8 @@ class Tank:
         self.attack_interval = self.FPS // 3
         self.collide_cooldown = 0 # only reduce mark when it hits 0
         self.collide_interval = round(self.FPS * 1.5)
-        self.heal_cooldown = 0 # only gain mark when it hits 0
-        self.heal_interval = round(self.FPS * 0.6)
+        self.heal_cooldown = 0 # only gain mark when it hits full interval
+        self.heal_interval = 150
 
 
 
@@ -628,6 +628,8 @@ class Tank:
 
 
     def set_special_technique(self, technique_names):
+
+        # reset the ammunitions array as long as I change the ammunitions_num
 
         self.technique_name = technique_names[self.special_technique]
 
@@ -649,8 +651,8 @@ class Tank:
 
         elif self.special_technique == 3:
 
-            self.speed = round(self.speed * 0.5)
-            self.fuel = round(self.fuel * 0.5)
+            self.speed //= 2
+            self.fuel //= 2
             self.fuel_capacity = self.fuel
             self.shoot_range = round(self.shoot_range * 0.7)
 
@@ -661,7 +663,7 @@ class Tank:
 
         elif self.special_technique == 4:
             
-            self.ammunitions_num += 10
+            self.ammunitions_num += 15
 
             # reset the ammunitions array
 
@@ -932,11 +934,11 @@ class Tank:
 
         if self.heal_cooldown < self.heal_interval:
 
-            self.heal_cooldown += 1
+            self.heal_cooldown += self.speed
 
         else:
 
-            if self.live_points < self.heal_interval:
+            if self.live_points < 100:
 
                 self.live_points += 1
 
@@ -1264,20 +1266,20 @@ class Game:
 
         self.technique_descriptions = {
 
-            1 : "1.5x normal shoot range",
-            2 : "1.5x normal shoot hurt, but 5 fewer ammunitions",
-            3 : "The tank aims the opponent for you, but half speed and shorter shoot range",
-            4 : "10 more ammunitions",
-            5 : "Only 2/3 of hurt when being hit, but also half speed",
-            6 : "Greater speed, fuel, and rotating speed -> Better agility and more flexible",
-            7 : "Recover 1 live point per 100 frames when you move",
+            1 : "1.5x basic shoot range",
+            2 : "1.5x basic shoot hurt, but 5 fewer ammunitions",
+            3 : "The tank aims the opponent for you, but half speed & fuel, and shorter shoot range",
+            4 : "15 more ammunitions",
+            5 : "Only 2/3 of hurt when being hit, but also half speed and fuel",
+            6 : "Greater speed, fuel, and rotating speed -> Better agility",
+            7 : "Recover 1 live point every 150 pixel you move",
             8 : "Double shooting frequency"
 
         }
 
         self.rules_descriptions = [
 
-            "How to win: Shoot the enemy or even collide with it till the enemy's live point is 0!" 
+            "How to win: Shoot the enemy or even collide with it till the enemy's live point is 0!",
             "Tanks start with 100 live points; reaching 0 means losing.",
             "A basic tank has 35 ammunitions for shooting.",
             "Fuel begins at 10,000 mL for a basic tank.",
