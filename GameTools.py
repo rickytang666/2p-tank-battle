@@ -1285,6 +1285,7 @@ class Game:
             "Fuel begins at 10,000 mL for a basic tank.",
             "Fuel is consumed by moving (1 mL/pixel), shooting, and time (1 mL/second).",
             "The basic shooting range is approx. 1/5 of screen diagonal.",
+            "At the first 15s, the orange shoot range is displayed to let players know.",
             "Basic tanks lose 6 points per hit and 1 point every 1.5 seconds when colliding.",
             "One (You can also choose no) special technique can be chosen by each player.",
             "*The Captain America Shields are simply for desorating (No actual impacts)"
