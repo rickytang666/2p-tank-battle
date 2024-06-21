@@ -8,8 +8,8 @@
 
 1. Description
    - Introduction of the game rules
+   - Game Special Techniques
    - Technologies Used
-   - Challenges Faced
    - Future Improvements
 2. Installation
 3. Usage
