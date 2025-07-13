@@ -102,7 +102,7 @@ Contributions are welcome! Please feel free to submit a pull request or create a
 
 Created this game on June 6th, 2024; finished on June 20th, 2024
 
-LinkedIn: [Ruiqi Tang](https://www.linkedin.com/in/ruiqi-tang-04a16a2a2/) 
+LinkedIn: [Ricky Tang](https://www.linkedin.com/in/ruiqi-tang-04a16a2a2/) 
 
 GitHub Profile: [rickytang666](https://github.com/rickytang666)
 
